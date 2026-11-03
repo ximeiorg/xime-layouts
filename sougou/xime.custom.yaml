@@ -1,0 +1,339 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# 搜狗输入法风格布局（Xime / 安卓）
+#
+# 参考：搜狗输入法手机端截图（26 键全键盘、九宫格拼音、九宫格数字），配色按截图实测取色
+# 基座：Xime/app/src/main/assets/xime.yaml（未写的键自动回退基座值）
+#
+# 安装：把本文件放到 Xime 用户目录 rime/xime.custom.yaml
+#       （Android/data/<包名>/files/rime/），然后在键盘设置里重新部署/重启输入法。
+#
+# 覆盖范围：
+#   · 主题色：亮色 = 浅灰蓝底 #F2F3F7 + 纯白键 + #C6C9D4 功能键 + 纯黑字（截图实测）
+#             暗色 = #1C1C1E 底 + #363638 键 + #262628 功能键（暂按搜狗深色估的）
+#   · 26 键：Q 行嵌 1-0 提示、A 行 ~ ! @ # % “ ” * ?、
+#            Z 行 ( ) - ~ : ; /，底行 符 123 ， 空格 。 中英 换行
+#   · 九键：左栏候选 + ，。？！，主区 分词/ABC… + 123 空格 中英，
+#            右栏 退格 / 重输 / 0 / 换行
+#   · 数字面板：左键柱 % / - +，1-9、返回 0 空格，右栏 退格 . @ 换行
+#   · 通用符号：1-0 / - / : ~ ( ) … @ “ ” / 符 。 ， 、 ? ! . 退格 /
+#               返回 表情 123 空格 换行
+#
+# 说明（Xime 渲染层的固有限制，非配置遗漏）：
+#   1. 空格键文字由 Xime 固定（26 键/九键 = 方案名，符号面板 = “空格”），
+#      搜狗空格上的麦克风图标无法复刻；长按空格 = 语音，行为保留。
+#   2. 键色只有“普通键 / 功能键”两组：数字面板右栏的 . @、九键的 0 在搜狗里是
+#      灰键，Xime 只能按普通键画成白键。
+#   3. 数字面板左键柱（% / - +）由 Xime 用普通键底色绘制，无法像搜狗那样整柱灰底；
+#      「符」键沿用 Xime 内置文案，键面显示为「符号」而不是单字「符」。
+#   4. 九键没有内置的 “0” 键：这里用自定义键 zero 直接上屏 “0”。搜狗里 0 是九键
+#      分隔语义，行为略有差异；不想要删掉 right 里的 zero 即可。
+#   5. 九键“中英”在 Xime 里固定是地球图标，无法显示搜狗的两行“中/英”；
+#      26 键“中英”同样按你之前的偏好用地球图标，想要文字键面可改成
+#      earth: { tap: { label: "中英", action: toggle_ascii, bubble: false }, ... }
+#   6. 平板会自动套用 Xime 内置的 qwerty_tablet 等分段，本文件只覆盖手机布局。
+#   7. 强调色（搜狗蓝 0x4C8DFF）与整套深色配色是估的，拿到深色截图后再校准；
+#      选中候选底用 candidate_selected_bg_color / _dark（0xAARRGGBB，自带透明度）。
+# ═══════════════════════════════════════════════════════════════════════════
+
+metadata:
+  app_name: Xime
+  app_version: ">=3.5.0"
+  platform: android
+  config_version: 1
+  generator: "Xime Config Generator" # 暂时无用
+  modified_time: "2026-11-03"
+
+style:
+  color_scheme:
+    light: sogou
+    dark: sogou
+  dark_mode: 2 # 0=浅色 1=深色 2=跟随系统
+
+color_schemes:
+  sogou:
+    name: "搜狗主题"
+    # 搜狗蓝：候选栏强调色（返回/剪贴板/展开图标、九键选中音节等）
+    primary_color: 0x4C8DFF
+
+    # 搜狗键盘底是纯色浅灰蓝，没有渐变
+    keyboard_background:
+      type: solid
+      color: 0xF2F3F7
+      color_dark: 0x1C1C1E
+    keyboard_bg_color: 0xF2F3F7
+
+    key_bg_color: 0xFFFFFF
+    key_bg_color_dark: 0x363638
+
+    # 搜狗功能键比普通键暗一档：#C6C9D4（截图实测）
+    special_key_bg_color: 0xC6C9D4
+    special_key_bg_color_dark: 0x262628
+
+    candidate_bar_bg_color: 0xF2F3F7
+    candidate_bar_background:
+      type: solid
+      color: 0xF2F3F7
+      color_dark: 0x1C1C1E
+
+    key_text_color: 0x000000
+    key_text_color_dark: 0xF2F2F2
+    candidate_text_color: 0x1A1A1A
+    candidate_text_color_dark: 0xE8E8E8
+    # 选中候选：搜狗蓝 10% 透明底 + 蓝字
+    candidate_selected_bg_color: 0x1A4C8DFF
+    candidate_selected_bg_color_dark: 0x1A4C8DFF
+    candidate_selected_text_color: 0x4C8DFF
+    candidate_selected_text_color_dark: 0x7FB2FF
+
+keyboard:
+  # ── 键面圆角 / 间距 ──
+  key:
+    corner_radius: 8      # 搜狗圆角比微信大（≈8dp）
+    # 键间距按「左右各留 spacing_x」计算，实际缝宽 = 2 * spacing
+    spacing_x: 3.5        # 横向缝 ≈10px（截图实测）
+    spacing_y: 5.5        # 纵向缝 ≈17px
+    # 九键 / 数字 / 符号面板的键更高，行间缝要比 26 键小
+    t9: { spacing_x: 3.5, spacing_y: 4 }
+    number: { spacing_x: 3.5, spacing_y: 4 }
+    symbol: { spacing_x: 3.5, spacing_y: 4 }
+
+  # shape_radius 要和 key.corner_radius 一致（渲染时取两者较大值，否则阴影会从键角露出来）
+  shadow:
+    enabled: true
+    elevation: 0.5
+    shape_radius: 8
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 26 键全键盘（中文）
+  # ═════════════════════════════════════════════════════════════════════════
+  qwerty:
+    button_layout: standard
+    layout:
+      columns: 10
+      rows:
+        - [q, w, e, r, t, y, u, i, o, p]
+        - [a, s, d, f, g, h, j, k, l]
+        - [shift, z, x, c, v, b, n, m, delete]
+        - [open_symbols, number, comma, space, period, earth, enter]
+    keys:
+      # ── 第一行：上滑 1-0（键面右上角提示）──
+      q: { tap: "q", swipe_up: "1", long_press: { display: "bubble", values: ["q", "Q"] } }
+      w: { tap: "w", swipe_up: "2", long_press: { display: "bubble", values: ["w", "W"] } }
+      e: { tap: "e", swipe_up: "3", long_press: { display: "bubble", values: ["e", "E"] } }
+      r: { tap: "r", swipe_up: "4", long_press: { display: "bubble", values: ["r", "R"] } }
+      t: { tap: "t", swipe_up: "5", long_press: { display: "bubble", values: ["t", "T"] } }
+      y: { tap: "y", swipe_up: "6", long_press: { display: "bubble", values: ["y", "Y"] } }
+      u: { tap: "u", swipe_up: "7", long_press: { display: "bubble", values: ["u", "U"] } }
+      i: { tap: "i", swipe_up: "8", long_press: { display: "bubble", values: ["i", "I"] } }
+      o: { tap: "o", swipe_up: "9", long_press: { display: "bubble", values: ["o", "O"] } }
+      p: { tap: "p", swipe_up: "0", long_press: { display: "bubble", values: ["p", "P"] } }
+
+      # ── 第二行：上滑 ~ ! @ # % “ ” * ? ──
+      a: { tap: "a", swipe_up: "~", long_press: { display: "bubble", values: ["a", "A"] } }
+      s: { tap: "s", swipe_up: "!", long_press: { display: "bubble", values: ["s", "S"] } }
+      d: { tap: "d", swipe_up: "@", long_press: { display: "bubble", values: ["d", "D"] } }
+      f: { tap: "f", swipe_up: "#", long_press: { display: "bubble", values: ["f", "F"] } }
+      g: { tap: "g", swipe_up: "%", long_press: { display: "bubble", values: ["g", "G"] } }
+      h: { tap: "h", swipe_up: "“", long_press: { display: "bubble", values: ["h", "H"] } }
+      j: { tap: "j", swipe_up: "”", long_press: { display: "bubble", values: ["j", "J"] } }
+      k: { tap: "k", swipe_up: "*", long_press: { display: "bubble", values: ["k", "K"] } }
+      l: { tap: "l", swipe_up: "?", long_press: { display: "bubble", values: ["l", "L"] } }
+
+      # ── 第三行：上滑 ( ) - ~ : ; / ──
+      z: { tap: "z", swipe_up: "(", long_press: { display: "bubble", values: ["z", "Z"] } }
+      x: { tap: "x", swipe_up: ")", long_press: { display: "bubble", values: ["x", "X"] } }
+      c: { tap: "c", swipe_up: "-", long_press: { display: "bubble", values: ["c", "C"] } }
+      v: { tap: "v", swipe_up: "~", long_press: { display: "bubble", values: ["v", "V"] } }
+      b: { tap: "b", swipe_up: ":", long_press: { display: "bubble", values: ["b", "B"] } }
+      n: { tap: "n", swipe_up: ";", long_press: { display: "bubble", values: ["n", "N"] } }
+      m: { tap: "m", swipe_up: "/", long_press: { display: "bubble", values: ["m", "M"] } }
+
+      # ── 功能键 ──
+      # 底行按截图实测（以字母键为 1，合计正好 10 列，与 Q 行格子对齐）：
+      #   符 1.52 ：123 1.24 ：，0.94 ：空格 2.62 ：。0.94 ：中英 1.24 ：换行 1.50
+      shift: { width: 1.5 }   # 单击/双击大写；行为沿用内置
+      delete: { width: 1.5 }  # 退格；长按连删、上滑清空等沿用内置
+
+      open_symbols: { width: 1.52 } # 符：键面“符”，点按进通用符号面板
+      number: { width: 1.24 }       # 123：键面“123”，点按进数字面板
+
+      # 逗号：键面“，”，上滑“。”
+      comma:
+        width: 0.94
+        tap: { label: "，", value: "," }
+        swipe_up: { label: "。", value: "." }
+        long_press: { display: "bubble", values: [{ action: commit, value: "," }, { action: commit, value: "." }] }
+
+      space: { width: 2.62 }  # 空格：点按空格、长按语音等行为沿用内置
+
+      # 句号：键面“。”，长按可选 。 ， ？ ！
+      period:
+        width: 0.94
+        tap: { label: "。", value: "." }
+        long_press:
+          display: bubble
+          values:
+            - { action: commit, value: "。" }
+            - { action: commit, value: "，" }
+            - { action: commit, value: "？" }
+            - { action: commit, value: "！" }
+
+      # 中/英：用 Xime 默认地球图标（长按仍弹出“选择输入法”）
+      earth:
+        width: 1.24
+        tap: { icon: "language", action: toggle_ascii, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "选择输入法", action: command, value: show_ime_picker }
+
+      # 换行：保留 Xime 的自动文案（普通文本框显示“换行”，发送场景显示“发送”）
+      enter: { width: 1.5 }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 26 键全键盘（英文）——排布与中文一致，标点用半角，沿用英文输入语义
+  # ═════════════════════════════════════════════════════════════════════════
+  qwerty_en:
+    button_layout: standard
+    layout:
+      columns: 10
+      rows:
+        - [q, w, e, r, t, y, u, i, o, p]
+        - [a, s, d, f, g, h, j, k, l]
+        - [shift, z, x, c, v, b, n, m, delete]
+        - [open_symbols, number, comma, space, period, earth, enter]
+    keys:
+      q: { tap: "q", swipe_up: "1", long_press: { display: "bubble", values: ["q", "Q"] } }
+      w: { tap: "w", swipe_up: "2", long_press: { display: "bubble", values: ["w", "W"] } }
+      e: { tap: "e", swipe_up: "3", long_press: { display: "bubble", values: ["e", "E"] } }
+      r: { tap: "r", swipe_up: "4", long_press: { display: "bubble", values: ["r", "R"] } }
+      t: { tap: "t", swipe_up: "5", long_press: { display: "bubble", values: ["t", "T"] } }
+      y: { tap: "y", swipe_up: "6", long_press: { display: "bubble", values: ["y", "Y"] } }
+      u: { tap: "u", swipe_up: "7", long_press: { display: "bubble", values: ["u", "U"] } }
+      i: { tap: "i", swipe_up: "8", long_press: { display: "bubble", values: ["i", "I"] } }
+      o: { tap: "o", swipe_up: "9", long_press: { display: "bubble", values: ["o", "O"] } }
+      p: { tap: "p", swipe_up: "0", long_press: { display: "bubble", values: ["p", "P"] } }
+      a: { tap: "a", swipe_up: "~", long_press: { display: "bubble", values: ["a", "A"] } }
+      s: { tap: "s", swipe_up: "!", long_press: { display: "bubble", values: ["s", "S"] } }
+      d: { tap: "d", swipe_up: "@", long_press: { display: "bubble", values: ["d", "D"] } }
+      f: { tap: "f", swipe_up: "#", long_press: { display: "bubble", values: ["f", "F"] } }
+      g: { tap: "g", swipe_up: "%", long_press: { display: "bubble", values: ["g", "G"] } }
+      h: { tap: "h", swipe_up: "\"", long_press: { display: "bubble", values: ["h", "H"] } }
+      j: { tap: "j", swipe_up: "'", long_press: { display: "bubble", values: ["j", "J"] } }
+      k: { tap: "k", swipe_up: "*", long_press: { display: "bubble", values: ["k", "K"] } }
+      l: { tap: "l", swipe_up: "?", long_press: { display: "bubble", values: ["l", "L"] } }
+      z: { tap: "z", swipe_up: "(", long_press: { display: "bubble", values: ["z", "Z"] } }
+      x: { tap: "x", swipe_up: ")", long_press: { display: "bubble", values: ["x", "X"] } }
+      c: { tap: "c", swipe_up: "-", long_press: { display: "bubble", values: ["c", "C"] } }
+      v: { tap: "v", swipe_up: "~", long_press: { display: "bubble", values: ["v", "V"] } }
+      b: { tap: "b", swipe_up: ":", long_press: { display: "bubble", values: ["b", "B"] } }
+      n: { tap: "n", swipe_up: ";", long_press: { display: "bubble", values: ["n", "N"] } }
+      m: { tap: "m", swipe_up: "/", long_press: { display: "bubble", values: ["m", "M"] } }
+
+      shift: { width: 1.5 }
+      delete: { width: 1.5 }
+      open_symbols: { width: 1.52 }
+      number: { width: 1.24 }
+      comma:
+        width: 0.94
+        tap: { label: ",", value: "," }
+        swipe_up: { label: ".", value: "." }
+        long_press: { display: "bubble", values: [{ action: commit, value: "," }, { action: commit, value: "." }] }
+      space: { width: 2.62 }
+      period:
+        width: 0.94
+        tap: { label: ".", value: "." }
+        long_press:
+          display: bubble
+          values:
+            - { action: commit, value: "." }
+            - { action: commit, value: "," }
+            - { action: commit, value: "?" }
+            - { action: commit, value: "!" }
+      earth:
+        width: 1.24
+        tap: { icon: "language", action: toggle_ascii, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "选择输入法", action: command, value: show_ime_picker }
+      enter: { width: 1.5 }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 九宫格拼音（T9）——搜狗排布
+  #   左栏：候选面板（空闲时显示 ，。？！）+ 符
+  #   主区：分词 / ABC / DEF，GHI / JKL / MNO，PQRS / TUV / WXYZ，123 空格 中英
+  #   右栏：退格 / 重输 / 0 / 换行
+  #
+  # 何时显示九键：由基座的 keyboard.t9.schemas 决定（默认 t9_pinyin / t9 /
+  # wanxiang_t9 / rime_frost_t9）。想让自己的方案也用九键，在本段追加
+  # （列表要整段写出，不能只写新增项）：
+  #   schemas: [t9_pinyin, t9, wanxiang_t9, rime_frost_t9, 你的方案id]
+  # ═════════════════════════════════════════════════════════════════════════
+  t9:
+    type: t9
+    layout:
+      left: [candidates, symbol]
+      rows:
+        - ["1", "2", "3"]
+        - ["4", "5", "6"]
+        - ["7", "8", "9"]
+        - [number, space, earth]
+      right: [delete, clear, zero, enter]
+
+    # 左栏空闲时显示的快捷符号（搜狗为 ，。？！）
+    side_symbols: ["，", "。", "？", "！"]
+
+    keys:
+      # 底行比例：123 / 中英 比字母键窄一点，空格更宽（搜狗观感）
+      number: { width: 0.88 }
+      space: { width: 1.72 }
+      # 中英切换用内置地球图标（与 26 键一致）
+      earth: { width: 0.88 }
+      # 右栏四键等高（内置 enter 权重是 2）
+      enter: { width: 1.0 }
+      # 搜狗的 0：Xime 没有九键 0 键，这里用自定义键直接上屏 “0”
+      zero: { tap: { label: "0", action: commit, value: "0" } }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 数字面板（九宫格数字）——搜狗排布
+  # 左键柱 % / - +，下面“符”；1-9 + 返回 0 空格；右栏 退格 . @ 换行
+  # ═════════════════════════════════════════════════════════════════════════
+  number:
+    type: columns
+    layout:
+      left:
+        - ["%", "/", "-", "+"]
+        - open_symbols
+      rows:
+        - ["1", "2", "3"]
+        - ["4", "5", "6"]
+        - ["7", "8", "9"]
+        - [back, "0", space_key]
+      right: [delete, ".", "@", enter]
+    keys:
+      # 数字面板的返回键：配置 label 后显示文字（不配是返回图标）
+      back: { tap: { label: "返回" } }
+      enter: { tap: { action: send_rime, value: enter, label: "换行" } }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 通用符号面板
+  # 1-0 / - / : ~ ( ) … @ “ ” / 符 。 ， 、 ? ! . 退格 /
+  # 返回 表情 123 空格 换行
+  # ═════════════════════════════════════════════════════════════════════════
+  common_symbols:
+    type: full
+    layout:
+      rows:
+        - ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
+        - ["-", "/", ":", "~", "(", ")", "…", "@", "“", "”"]
+        - [open_symbols, "。", "，", "、", "?", "!", ".", delete]
+        - [back, emoji, number, space_key, enter]
+    keys:
+      open_symbols: { width: 1.2 }
+      delete: { width: 1.2 }
+      back: { width: 1.6, tap: { label: "返回" } }
+      emoji: { width: 1.0 }
+      number: { width: 1.0 }
+      space_key: { width: 5.0 }
+      enter: { width: 2.4, tap: { action: send_rime, value: enter, label: "换行" } }

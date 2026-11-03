@@ -1,0 +1,340 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# 微信输入法风格布局（Xime / 安卓）
+#
+# 参考：wetype/全键盘.png、wetype/九宫格拼音.png、
+#       wetype/九宫格数字.png、wetype/通用符号.png
+# 基座：Xime/app/src/main/assets/xime.yaml（未写的键自动回退基座值）
+#
+# 安装：把本文件放到 Xime 用户目录 rime/xime.custom.yaml
+#       （Android/data/<包名>/files/rime/），然后在键盘设置里重新部署/重启输入法。
+#
+# 覆盖范围：
+#   · 主题色：亮色 = 浅灰渐变底 + 白键 + 灰蓝功能键 + 微信绿；
+#            暗色 = #1F1F1F 底 + #5F5F5F 键 + #414141 功能键（取自微信深色键盘）
+#   · 26 键全键盘：Q 行嵌 1-0 提示、A 行符号提示、Z 行 @ . # , ? ! …
+#                  微信式 123 / 逗号 / 空格 / 地球键 / 换行 底行比例
+#   · 九宫格拼音：@#(1) ABC DEF / GHI JKL MNO / PQRS TUV WXYZ / 123 空格 地球键
+#                  左栏候选&，。？！ 右栏 退格 / 重输 / 换行(跨两行)
+#   · 数字面板：左键柱 @ % - +，1-9、符号 0 .、右栏 退格 空格 表情 换行
+#   · 通用符号：1-0 / - / : ~ ( ) … @ “ ” / 符号 。 ， 、 ? ! . 退格 /
+#               返回 表情 123 空格 换行
+#
+# 说明（Xime 渲染层的固有限制，非配置遗漏）：
+#   1. 空格键文字由 Xime 固定（26 键/九键 = 方案名，符号面板 = “空格”），
+#      不能改成微信的“按住转文字”；长按空格 = 语音，这一行为保留。
+#   2. 候选栏/工具栏内容由引擎与设置决定，YAML 只能改配色，改不了微信那行
+#      快捷符号与微信图标。
+#   3. 键色只有“普通键 / 功能键”两组：微信数字面板的绿色返回键、数字面板里的
+#      白色“符号”键、符号面板里的白色“123”键，在 Xime 里都跟随功能键灰蓝。
+#   4. 九键左栏候选面板、数字面板左键柱由 Xime 用普通键底色绘制，
+#      无法像微信那样整块灰蓝；九键“重输”固定为刷新图标 + 小字。
+#   5. 平板会自动套用 Xime 内置的 qwerty_tablet 等分段，本文件只覆盖手机布局。
+#   6. 九键“1”键按微信显示 @# 并改为打开常用符号面板（不再输入数字 1）；
+#      想恢复“分词”行为，删掉 keys."1".tap 即可。
+#   7. 选中候选底用 candidate_selected_bg_color / _dark 指定（形如 0xAARRGGBB）：
+#      本主题为 0x4DFFFFFF（白色，alpha 0x4D ≈ 30% 不透明，即 70% 透明）；
+#      未配置时 Xime 会回退到“primary_color 20% 透明”。
+# ═══════════════════════════════════════════════════════════════════════════
+
+metadata:
+  app_name: Xime
+  app_version: ">=3.5.0"
+  platform: android
+  config_version: 1
+  generator: "Xime Config Generator" # 暂时无用
+  modified_time: "2026-11-03"
+
+style:
+  # 浅色/深色都使用下面这套“微信输入法”配色（方案自带 _dark 字段）
+  color_scheme:
+    light: wechat
+    dark: wechat
+  dark_mode: 2 # 0=浅色 1=深色 2=跟随系统
+
+color_schemes:
+  wechat:
+    name: "微信主题"
+    # 微信绿：候选栏强调色（返回/剪贴板/展开图标、九键选中音节等）。
+    # 选中候选的圆角底不再依赖它，由下方 candidate_selected_bg_color 单独指定。
+    primary_color: 0x07C160
+
+    # 键盘底：亮色是自上而下由浅到深的极淡灰蓝渐变；
+    # 暗色按微信深色键盘是纯 #1F1F1F（两段同色 → 视觉纯色）
+    keyboard_background:
+      type: gradient
+      colors: [0xE6E7EB, 0xD5D7DD]
+      colors_dark: [0x1F1F1F, 0x1F1F1F]
+      angle: 90
+    # 渐变不可用时的后备纯色
+    keyboard_bg_color: 0xDADCE0
+
+    key_bg_color: 0xFBFBFB
+    key_bg_color_dark: 0x5F5F5F # 微信深色按键：中灰 95,95,95
+
+    # 微信功能键：
+    #   亮色 #BFC4CC（比截图的 #B7BCC3 略亮一点，让 Xime 判定为“浅底”→ 深色图标）
+    #   暗色 #414141（比普通键更深，和微信深色键盘一致）
+    special_key_bg_color: 0xBFC4CC
+    special_key_bg_color_dark: 0x414141
+
+    candidate_bar_bg_color: 0xE4E5E9
+    candidate_bar_background:
+      type: solid
+      color: 0xE4E5E9
+      color_dark: 0x1F1F1F
+
+    key_text_color: 0x1A1A1A
+    key_text_color_dark: 0xF2F2F2
+    candidate_text_color: 0x1A1A1A
+    candidate_text_color_dark: 0xF2F2F2
+    # 选中候选的圆角底：白色 70% 透明（0xAARRGGBB，alpha 0x4D≈30% 不透明）
+    candidate_selected_bg_color: 0x4DFFFFFF
+    candidate_selected_bg_color_dark: 0x4DFFFFFF
+    candidate_selected_text_color: 0x07C160
+    candidate_selected_text_color_dark: 0x3DDC97
+
+keyboard:
+  # ── 键面圆角 / 间距 ──
+  key:
+    corner_radius: 6 # 微信约 8dp，这里收小到 6dp
+    spacing_x: 2
+    spacing_y: 4.5
+    # 九键 / 数字 / 符号面板的键更高，行间缝要比 26 键小
+    t9: { spacing_x: 3, spacing_y: 3 }
+    number: { spacing_x: 3, spacing_y: 3 }
+    symbol: { spacing_x: 2, spacing_y: 4.5 }
+
+  # 微信按键有很轻的下沉阴影
+  # shape_radius 要和 key.corner_radius 一致（渲染时取两者较大值，否则阴影会从键角露出来）
+  shadow:
+    enabled: true
+    elevation: 0.5
+    shape_radius: 6
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 26 键全键盘（中文）
+  # ═════════════════════════════════════════════════════════════════════════
+  qwerty:
+    button_layout: standard
+    layout:
+      columns: 10
+      rows:
+        - [q, w, e, r, t, y, u, i, o, p]
+        - [a, s, d, f, g, h, j, k, l]
+        - [shift, z, x, c, v, b, n, m, delete]
+        - [mode_change, comma, space, earth, enter]
+    keys:
+      # ── 第一行：上滑 1-0（键面顶部提示）──
+      q: { tap: "q", swipe_up: "1", long_press: { display: "bubble", values: ["q", "Q"] } }
+      w: { tap: "w", swipe_up: "2", long_press: { display: "bubble", values: ["w", "W"] } }
+      e: { tap: "e", swipe_up: "3", long_press: { display: "bubble", values: ["e", "E"] } }
+      r: { tap: "r", swipe_up: "4", long_press: { display: "bubble", values: ["r", "R"] } }
+      t: { tap: "t", swipe_up: "5", long_press: { display: "bubble", values: ["t", "T"] } }
+      y: { tap: "y", swipe_up: "6", long_press: { display: "bubble", values: ["y", "Y"] } }
+      u: { tap: "u", swipe_up: "7", long_press: { display: "bubble", values: ["u", "U"] } }
+      i: { tap: "i", swipe_up: "8", long_press: { display: "bubble", values: ["i", "I"] } }
+      o: { tap: "o", swipe_up: "9", long_press: { display: "bubble", values: ["o", "O"] } }
+      p: { tap: "p", swipe_up: "0", long_press: { display: "bubble", values: ["p", "P"] } }
+
+      # ── 第二行：上滑 - / : ; ( ) ~ “ ” ──
+      a: { tap: "a", swipe_up: "-", long_press: { display: "bubble", values: ["a", "A"] } }
+      s: { tap: "s", swipe_up: "/", long_press: { display: "bubble", values: ["s", "S"] } }
+      d: { tap: "d", swipe_up: ":", long_press: { display: "bubble", values: ["d", "D"] } }
+      f: { tap: "f", swipe_up: ";", long_press: { display: "bubble", values: ["f", "F"] } }
+      g: { tap: "g", swipe_up: "(", long_press: { display: "bubble", values: ["g", "G"] } }
+      h: { tap: "h", swipe_up: ")", long_press: { display: "bubble", values: ["h", "H"] } }
+      j: { tap: "j", swipe_up: "~", long_press: { display: "bubble", values: ["j", "J"] } }
+      k: { tap: "k", swipe_up: "“", long_press: { display: "bubble", values: ["k", "K"] } }
+      l: { tap: "l", swipe_up: "”", long_press: { display: "bubble", values: ["l", "L"] } }
+
+      # ── 第三行：上滑 @ . # , ? ! … ──
+      z: { tap: "z", swipe_up: "@", long_press: { display: "bubble", values: ["z", "Z"] } }
+      x: { tap: "x", swipe_up: ".", long_press: { display: "bubble", values: ["x", "X"] } }
+      c: { tap: "c", swipe_up: "#", long_press: { display: "bubble", values: ["c", "C"] } }
+      v: { tap: "v", swipe_up: ",", long_press: { display: "bubble", values: ["v", "V"] } }
+      b: { tap: "b", swipe_up: "?", long_press: { display: "bubble", values: ["b", "B"] } }
+      n: { tap: "n", swipe_up: "!", long_press: { display: "bubble", values: ["n", "N"] } }
+      m: { tap: "m", swipe_up: "…", long_press: { display: "bubble", values: ["m", "M"] } }
+
+      # ── 功能键 ──
+      # 底行按微信键面实测比例（以字母键为 1）：
+      #   123 2.0 ：逗号 1.0 ：空格 3.73 ：中英 1.13 ：换行 2.14
+      # 合计正好 10 列，与 Q 行格子对齐；逗号与字母键同宽，空格不再过长。
+      # 微信 shift / delete 约为字母键的 1.45 倍宽
+      shift: { width: 1.45 } # 单击/双击大写；行为沿用内置
+      delete: { width: 1.45 } # 退格；长按连删、上滑清空等沿用内置
+
+      # 123：单击直接进数字面板（微信行为），长按可选数字/常用符号
+      mode_change:
+        width: 2.0
+        tap: { label: "123", action: command, value: mode_change_number, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "数字", action: command, value: mode_change_number }
+            - { label: "常用符号", action: command, value: mode_change_common_symbol }
+
+      # 逗号：键面“，”，上滑“。”
+      comma:
+        width: 1.0
+        tap: { label: "，", value: "," }
+        swipe_up: { label: "。", value: "." }
+        long_press: { display: "bubble", values: [{ action: commit, value: "," }, { action: commit, value: "." }] }
+
+      # 空格：宽 3.73；点按空格、长按语音等行为沿用内置
+      space: { width: 3.73 }
+
+      # 中/英：用 Xime 默认地球图标（长按仍弹出“选择输入法”）
+      earth:
+        width: 1.13
+        tap: { icon: "language", action: toggle_ascii, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "选择输入法", action: command, value: show_ime_picker }
+
+      # 换行：保留 Xime 的自动文案（普通文本框显示“换行”，发送场景显示“发送”）
+      enter: { width: 2.14 }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 26 键全键盘（英文）——排布与中文完全一致，仅沿用英文输入语义
+  # ═════════════════════════════════════════════════════════════════════════
+  qwerty_en:
+    button_layout: standard
+    layout:
+      columns: 10
+      rows:
+        - [q, w, e, r, t, y, u, i, o, p]
+        - [a, s, d, f, g, h, j, k, l]
+        - [shift, z, x, c, v, b, n, m, delete]
+        - [mode_change, comma, space, earth, enter]
+    keys:
+      q: { tap: "q", swipe_up: "1", long_press: { display: "bubble", values: ["q", "Q"] } }
+      w: { tap: "w", swipe_up: "2", long_press: { display: "bubble", values: ["w", "W"] } }
+      e: { tap: "e", swipe_up: "3", long_press: { display: "bubble", values: ["e", "E"] } }
+      r: { tap: "r", swipe_up: "4", long_press: { display: "bubble", values: ["r", "R"] } }
+      t: { tap: "t", swipe_up: "5", long_press: { display: "bubble", values: ["t", "T"] } }
+      y: { tap: "y", swipe_up: "6", long_press: { display: "bubble", values: ["y", "Y"] } }
+      u: { tap: "u", swipe_up: "7", long_press: { display: "bubble", values: ["u", "U"] } }
+      i: { tap: "i", swipe_up: "8", long_press: { display: "bubble", values: ["i", "I"] } }
+      o: { tap: "o", swipe_up: "9", long_press: { display: "bubble", values: ["o", "O"] } }
+      p: { tap: "p", swipe_up: "0", long_press: { display: "bubble", values: ["p", "P"] } }
+      a: { tap: "a", swipe_up: "-", long_press: { display: "bubble", values: ["a", "A"] } }
+      s: { tap: "s", swipe_up: "/", long_press: { display: "bubble", values: ["s", "S"] } }
+      d: { tap: "d", swipe_up: ":", long_press: { display: "bubble", values: ["d", "D"] } }
+      f: { tap: "f", swipe_up: ";", long_press: { display: "bubble", values: ["f", "F"] } }
+      g: { tap: "g", swipe_up: "(", long_press: { display: "bubble", values: ["g", "G"] } }
+      h: { tap: "h", swipe_up: ")", long_press: { display: "bubble", values: ["h", "H"] } }
+      j: { tap: "j", swipe_up: "~", long_press: { display: "bubble", values: ["j", "J"] } }
+      k: { tap: "k", swipe_up: "“", long_press: { display: "bubble", values: ["k", "K"] } }
+      l: { tap: "l", swipe_up: "”", long_press: { display: "bubble", values: ["l", "L"] } }
+      z: { tap: "z", swipe_up: "@", long_press: { display: "bubble", values: ["z", "Z"] } }
+      x: { tap: "x", swipe_up: ".", long_press: { display: "bubble", values: ["x", "X"] } }
+      c: { tap: "c", swipe_up: "#", long_press: { display: "bubble", values: ["c", "C"] } }
+      v: { tap: "v", swipe_up: ",", long_press: { display: "bubble", values: ["v", "V"] } }
+      b: { tap: "b", swipe_up: "?", long_press: { display: "bubble", values: ["b", "B"] } }
+      n: { tap: "n", swipe_up: "!", long_press: { display: "bubble", values: ["n", "N"] } }
+      m: { tap: "m", swipe_up: "…", long_press: { display: "bubble", values: ["m", "M"] } }
+      shift: { width: 1.45 }
+      delete: { width: 1.45 }
+      mode_change:
+        width: 2.0
+        tap: { label: "123", action: command, value: mode_change_number, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "数字", action: command, value: mode_change_number }
+            - { label: "常用符号", action: command, value: mode_change_common_symbol }
+      comma:
+        width: 1.0
+        tap: { label: ",", value: "," }
+        swipe_up: { label: ".", value: "." }
+        long_press: { display: "bubble", values: [{ action: commit, value: "," }, { action: commit, value: "." }] }
+      space: { width: 3.73 }
+      earth:
+        width: 1.13
+        tap: { icon: "language", action: toggle_ascii, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "选择输入法", action: command, value: show_ime_picker }
+      enter: { width: 2.14 }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 九宫格拼音（T9）
+  # 微信排布：左栏 候选/，(。？！) + 符号；
+  #           主区 1(@#) 2(ABC) 3(DEF) / 4 5 6 / 7 8 9 / 123 空格 地球键；
+  #           右栏 退格(1格) / 重输(1格) / 换行(2格)
+  #
+  # 何时显示九键：由基座的 keyboard.t9.schemas 决定（默认 t9_pinyin / t9 /
+  # wanxiang_t9 / rime_frost_t9）。想让自己的方案也用九键，在本段追加
+  # （列表要整段写出，不能只写新增项）：
+  #   schemas: [t9_pinyin, t9, wanxiang_t9, rime_frost_t9, 你的方案id]
+  # ═════════════════════════════════════════════════════════════════════════
+  t9:
+    type: t9
+    layout:
+      left: [candidates, symbol]
+      rows:
+        - ["1", "2", "3"]
+        - ["4", "5", "6"]
+        - ["7", "8", "9"]
+        - [number, space, earth]
+      right: [delete, clear, enter]
+
+    # 左栏空闲时显示的快捷符号（微信为 ，。？！）
+    side_symbols: ["，", "。", "？", "！"]
+
+    keys:
+      # 键面显示 @#（右上角仍显示小数字 1），点按打开常用符号面板（微信行为）
+      "1":
+        tap: { label: "@#", action: command, value: mode_change_common_symbol, bubble: false }
+
+      # 底行比例：123 窄、空格宽、地球键窄（微信观感）
+      number: { width: 0.75 }
+      space: { width: 1.7 }
+      # 中英切换用内置地球图标（与 26 键一致）
+      earth: { width: 0.75 }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 数字面板（九宫格数字）
+  # 左键柱 @ % - +，下面绿色返回键位（Xime 里与功能键同为灰蓝，见文件头说明）
+  # 主区 123/456/789/符号 0 .，右栏 退格 空格 表情 换行
+  # ═════════════════════════════════════════════════════════════════════════
+  number:
+    type: columns
+    layout:
+      left:
+        - ["@", "%", "-", "+"]
+        - back
+      rows:
+        - ["1", "2", "3"]
+        - ["4", "5", "6"]
+        - ["7", "8", "9"]
+        - [open_symbols, "0", "."]
+      right: [delete, space_bar, emoji, enter]
+    keys:
+      enter: { tap: { action: send_rime, value: enter, label: "换行" } }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 通用符号面板
+  # 1-0 / - / : ~ ( ) … @ “ ” / 符号 。 ， 、 ? ! . 退格 /
+  # 返回 表情 123 空格 换行
+  # 注：微信面板顶部那行无底键的符号属于候选栏，不在 YAML 布局范围内。
+  # ═════════════════════════════════════════════════════════════════════════
+  common_symbols:
+    type: full
+    layout:
+      rows:
+        - ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
+        - ["-", "/", ":", "~", "(", ")", "…", "@", "“", "”"]
+        - [open_symbols, "。", "，", "、", "?", "!", ".", delete]
+        - [back, emoji, number, space_key, enter]
+    keys:
+      open_symbols: { width: 1.2 }
+      delete: { width: 1.2 }
+      back: { width: 1.6 }
+      emoji: { width: 1.0 }
+      number: { width: 1.0 }
+      space_key: { width: 5.0 }
+      enter: { width: 2.4, tap: { action: send_rime, value: enter, label: "换行" } }

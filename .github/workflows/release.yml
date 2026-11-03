@@ -1,0 +1,53 @@
+name: Release YAML Configs
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  package-and-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Package YAML configs by directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          mkdir -p dist
+          packaged=0
+
+          # 每个包含 YAML 配置的目录打包为 <目录名>.zip
+          for dir in */; do
+            dir="${dir%/}"
+            [[ "$dir" == .* ]] && continue
+
+            mapfile -t files < <(find "$dir" -type f \( -name '*.yaml' -o -name '*.yml' \) | sort)
+            if [ "${#files[@]}" -eq 0 ]; then
+              echo "跳过 $dir：没有 YAML 配置"
+              continue
+            fi
+
+            zip -r "dist/${dir}.zip" "$dir" -i '*.yaml' '*.yml'
+            echo "已打包 dist/${dir}.zip（${#files[@]} 个文件）"
+            packaged=1
+          done
+
+          if [ "$packaged" -eq 0 ]; then
+            echo "::error::没有找到任何 YAML 配置，无法上传 Release 附件"
+            exit 1
+          fi
+
+          ls -lh dist
+
+      - name: Upload archives to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
+          fail_on_unmatched_files: true
