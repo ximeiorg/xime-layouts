@@ -1,0 +1,539 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Fcitx5 for Android 风格布局（Xime / 安卓）
+#
+# 参考：fcitx5-android 0.1.3（APK versionCode 114 / 0.1.3-0-g048f581c）源码
+#   · TextKeyboard.kt / NumberKeyboard.kt   —— 26 键与数字键盘的键位、keycap、宽度权重
+#   · ThemePreset.kt                        —— 11 套内置主题的全部色值（写在代码里，不在 res 里）
+#   · ThemePrefs.kt / KeyView.kt            —— 键面几何默认值与绘制方式
+# 基座：Xime/app/src/main/assets/xime.yaml（未写的键自动回退基座值）
+#
+# 安装：把本文件放到 Xime 用户目录 rime/xime.custom.yaml
+#       （Android/data/<包名>/files/rime/），然后在键盘设置里重新部署/重启输入法。
+#
+# 覆盖范围：
+#   · 键面几何：圆角 4dp、横缝 6dp、竖缝 14dp、无阴影 —— 与 fcitx5 默认值逐项对齐
+#              （ThemePrefs：key_radius=4、key_horizontal_margin=3、key_vertical_margin=7，
+#               KeyView 在 key_border 关闭时画纯色圆角块，没有投影）
+#   · 26 键：完全照 TextKeyboard.Layout 的键位与 alt 符号
+#              Q行 1-0 / A行 @ * + - = / # ( ) / Z行 ' : " ? ! ~ \
+#              alt 符号写在 swipe_up（fcitx5 里就是「滑一下上屏该符号」）
+#              底行 ?123 1.5 / ，1.0 / 地球 1.0 / 空格 4.0 / 。1.0 / 换行 1.5
+#              （fcitx5 的 percentWidth：字母 0.1、caps/退格/?123/回车 0.15、逗号/地球/句号 0.1、
+#                空格权重 0 吃掉剩余宽度，换算到 10 列就是上面这组数）
+#   · 数字键盘：照 NumberKeyboard.Layout 重排成 5 列小键盘
+#              + 1 2 3 /  ·  - 4 5 6 空格  ·  * 7 8 9 退格  ·  ABC , !?# 0 = . 换行
+#   · 主题：fcitx5 的 11 套内置主题，按「浅/深合并成一个 scheme」整理成 6 套
+#              fcitx5_pixel      Pixel 浅色 / 深色（fcitx5 正式版默认主题，见 ThemePrefs）
+#              fcitx5_material   Material 浅色 / 深色（fcitx5 debug 版默认主题）
+#              fcitx5_nord       Nord 浅色 / 深色
+#              fcitx5_deep_blue  DeepBlue（固定深色）
+#              fcitx5_amoled     AMOLEDBlack（固定纯黑）
+#              fcitx5_monokai    Monokai（固定深色）
+#              TransparentLight/Dark 两套没做，原因见说明 9。
+#
+# 说明（fcitx5 特性与 Xime 渲染层的差异，不是配置漏写）：
+#   1. 回车键：fcitx5 画的是一个**圆形**强调色按钮 —— KeyView.onSizeChanged 里对
+#      button_return 用 insetOvalDrawable(accentKeyBackgroundColor)，直径 min(w,h,35dp)。
+#      Xime 的键只有圆角矩形，而且键色只有「普通 / 功能」两档，没有 accent 档，
+#      所以回车只能和 Shift、退格同色。强调色仍用在候选栏图标与选中候选上。
+#   2. 空格条：fcitx5 的 spaceBarColor 是一条**内缩的矮条**（圆角 3dp、左右各缩 10dp、
+#      上下最多缩 16dp），颜色与字母键不同；Xime 的空格就是普通键，既不能单独着色也不能内缩。
+#   3. alt 符号位置：fcitx5 默认把 alt 符号画在键面**下方**（PunctuationPosition.Bottom，
+#      可改成 TopRight），Xime 的上滑提示画在键角（左上）。符号本身完全一致，位置不同。
+#   4. fcitx5 没有九键 / 笔画键盘，拼音也是同一个 26 键，所以本文件不覆盖 t9 / stroke。
+#      真要在 Xime 里用九键，那套沿用基座，只跟随本文件主题色。
+#   5. fcitx5 的 ?123 是**切到数字键盘**（不是符号面板），符号由数字键盘里的 !?# 打开
+#      PickerWindow（分类列表）。Xime 没有 picker，这里用「全量符号面板」近似，
+#      想改成常用符号面板就把 number 段里的 open_symbols 换成 mode_change + mode_change_common_symbol。
+#   6. fcitx5 的 alt 符号上屏时会走标点映射（中文态 , . ? ! : ; " ' \ ( ) 会变全角），
+#      键帽仍画 ASCII。Xime 的键值直接上屏，所以这里 alt 一律给 ASCII（与键帽一致），
+#      只有逗号/句号键按仓库惯例写成中文键面。要中文标点，把对应 value 改成全角即可。
+#   7. fcitx5 的候选选中态用的是 genericActiveBackgroundColor / ForegroundColor（不是半透明主色），
+#      这里直接映射成 candidate_selected_bg_color / _text_color。例：Material 浅色是
+#      #80CBC4 底 + #37474F 字，深色是 #4DB6AC 底 + 白字。
+#   8. fcitx5 的 altKeyTextColor（功能键文字色，比主文字淡）在 Xime 里由
+#      KeyboardThemes.getSpecialKeyTextColorForBackground(功能键底色, 主文字色) 自动推导，
+#      不能单独指定，所以功能键字色会和原版略有差异。
+#   9. TransparentLight / TransparentDark 没做：这两套的 keyboardColor 是 0x00000000（真透明），
+#      而 Xime 的 longToColor 对 <= 0xFFFFFF 的值一律补成不透明（0x00000000 → 纯黑），
+#      写进去会变成一块黑键盘；用 0x01000000 这种 1/255 alpha 绕过又依赖输入法窗口是否支持
+#      透明，行为不稳定，所以宁可不提供。
+#  10. fcitx5 在 Android 12+ 还有 Monet（跟随壁纸取色，Theme.Monet），对应 Xime 内置的
+#      dynamic 方案；把 style.color_scheme.light/dark 改成 dynamic 即可。
+#  11. fcitx5 主题是「固定色、手动选」，所以浅色/深色在它那边是两个主题；Xime 的 scheme
+#      自带 _dark 字段会跟随系统，按仓库约定合并成一个（与 gboard 那份一致）。
+#  12. 平板（smallestWidth ≥ 600dp）走 Xime 内置的 qwerty_tablet 等分段，本文件只覆盖手机。
+# ═══════════════════════════════════════════════════════════════════════════
+
+metadata:
+  app_name: Xime
+  app_version: ">=3.0.0"
+  platform: android
+  config_version: 1
+  generator: "Xime Config Generator" # 暂时无用
+  modified_time: "2026-11-06"
+
+style:
+  # fcitx5 正式版默认主题是 Pixel（ThemePrefs 里 DEBUG 才用 Material），这里跟随
+  color_scheme:
+    light: fcitx5_pixel
+    dark: fcitx5_pixel
+  dark_mode: 2 # 0=浅色 1=深色 2=跟随系统
+
+color_schemes:
+  # ─────────────────────────────────────────────────────────────────────────
+  # 色值全部来自 fcitx5-android 0.1.3 的 ThemePreset.kt（Kotlin 里的 Theme.Builtin 常量，
+  # 不在 res/values 里，所以只能读源码而不能 aapt dump）。字段对应关系：
+  #   keyboardColor            → keyboard_background(color / color_dark)
+  #   barColor                 → candidate_bar_background(color / color_dark)
+  #   keyBackgroundColor       → key_bg_color(_dark)
+  #   altKeyBackgroundColor    → special_key_bg_color(_dark)   ← Shift / 退格 / ?123 / 逗号 / 句号
+  #   keyTextColor             → key_text_color(_dark)
+  #   candidateTextColor       → candidate_text_color(_dark)
+  #   genericActiveBackground  → candidate_selected_bg_color
+  #   genericActiveForeground  → candidate_selected_text_color
+  #   accentKeyBackgroundColor → primary_color（回车圆形按钮的底色；Xime 里用于候选栏强调）
+  # ─────────────────────────────────────────────────────────────────────────
+
+  # Pixel 浅色 / 深色 —— PixelLight + PixelDark
+  #   浅 #FAFAFA 底 / #FFFFFF 键 / #E1E1E1 功能键 / #212121 字 / 强调 #4285F4
+  #   深 #2D2D2D 底 / #464646 键 / #373737 功能键 / #FAFAFA 字 / 强调 #5E97F6
+  fcitx5_pixel:
+    name: "Fcitx5 Pixel 浅色 / 深色"
+    primary_color: 0x4285F4
+    keyboard_background:
+      type: solid
+      color: 0xFAFAFA
+      color_dark: 0x2D2D2D
+    keyboard_bg_color: 0xFAFAFA
+    key_bg_color: 0xFFFFFF
+    key_bg_color_dark: 0x464646
+    special_key_bg_color: 0xE1E1E1
+    special_key_bg_color_dark: 0x373737
+    candidate_bar_background:
+      type: solid
+      color: 0xEEEEEE
+      color_dark: 0x373737
+    key_text_color: 0x212121
+    key_text_color_dark: 0xFAFAFA
+    candidate_text_color: 0x212121
+    candidate_text_color_dark: 0xFAFAFA
+    candidate_selected_bg_color: 0x5E97F6
+    candidate_selected_bg_color_dark: 0x5E97F6
+    candidate_selected_text_color: 0xFFFFFF
+    candidate_selected_text_color_dark: 0xFAFAFA
+
+  # Material 浅色 / 深色 —— MaterialLight + MaterialDark
+  #   浅 #ECEFF1 底 / #FBFBFC 键 / #DFE2E4 功能键 / #37474F 字 / 强调 #5CB5AB
+  #   深 #263238 底 / #404A50 键 / #313C42 功能键 / #D9DBDC 字 / 强调 #6EACA8
+  #   （Material 的 barColor 亮 #E4E7E9、暗 #21272B，比键盘底略深一档）
+  fcitx5_material:
+    name: "Fcitx5 Material 浅色 / 深色"
+    primary_color: 0x5CB5AB
+    keyboard_background:
+      type: solid
+      color: 0xECEFF1
+      color_dark: 0x263238
+    keyboard_bg_color: 0xECEFF1
+    key_bg_color: 0xFBFBFC
+    key_bg_color_dark: 0x404A50
+    special_key_bg_color: 0xDFE2E4
+    special_key_bg_color_dark: 0x313C42
+    candidate_bar_background:
+      type: solid
+      color: 0xE4E7E9
+      color_dark: 0x21272B
+    key_text_color: 0x37474F
+    key_text_color_dark: 0xD9DBDC
+    candidate_text_color: 0x37474F
+    candidate_text_color_dark: 0xD9DBDC
+    candidate_selected_bg_color: 0x80CBC4
+    candidate_selected_bg_color_dark: 0x4DB6AC
+    candidate_selected_text_color: 0x37474F
+    candidate_selected_text_color_dark: 0xFFFFFF
+
+  # Nord 浅色 / 深色 —— NordLight + NordDark
+  #   浅 #ECEFF4 底（键与底同色，只有圆角块轮廓）/ #E5E9F0 功能键 / #2E3440 字 / 强调 #5E81AC
+  #   深 #2E3440 底 / #4C566A 键 / #3B4252 功能键 / #ECEFF4 字 / 强调 #88C0D0
+  fcitx5_nord:
+    name: "Fcitx5 Nord 浅色 / 深色"
+    primary_color: 0x5E81AC
+    keyboard_background:
+      type: solid
+      color: 0xECEFF4
+      color_dark: 0x2E3440
+    keyboard_bg_color: 0xECEFF4
+    key_bg_color: 0xECEFF4
+    key_bg_color_dark: 0x4C566A
+    special_key_bg_color: 0xE5E9F0
+    special_key_bg_color_dark: 0x3B4252
+    candidate_bar_background:
+      type: solid
+      color: 0xE5E9F0
+      color_dark: 0x434C5E
+    key_text_color: 0x2E3440
+    key_text_color_dark: 0xECEFF4
+    candidate_text_color: 0x2E3440
+    candidate_text_color_dark: 0xECEFF4
+    candidate_selected_bg_color: 0x5E81AC
+    candidate_selected_bg_color_dark: 0x88C0D0
+    candidate_selected_text_color: 0xECEFF4
+    candidate_selected_text_color_dark: 0x2E3440
+
+  # DeepBlue（固定深色）—— Material Blue 800 底，白字
+  #   #1565C0 底 / #3F80CB 键 / #2771C4 功能键 / bar #0D47A1 / 强调 #2196F3
+  fcitx5_deep_blue:
+    name: "Fcitx5 深蓝"
+    primary_color: 0x2196F3
+    keyboard_background:
+      type: solid
+      color: 0x1565C0
+      color_dark: 0x1565C0
+    keyboard_bg_color: 0x1565C0
+    key_bg_color: 0x3F80CB
+    key_bg_color_dark: 0x3F80CB
+    special_key_bg_color: 0x2771C4
+    special_key_bg_color_dark: 0x2771C4
+    candidate_bar_background:
+      type: solid
+      color: 0x0D47A1
+      color_dark: 0x0D47A1
+    key_text_color: 0xFFFFFF
+    key_text_color_dark: 0xFFFFFF
+    candidate_text_color: 0xFFFFFF
+    candidate_text_color_dark: 0xFFFFFF
+    candidate_selected_bg_color: 0x094CEA
+    candidate_selected_bg_color_dark: 0x094CEA
+    candidate_selected_text_color: 0xFFFFFF
+    candidate_selected_text_color_dark: 0xFFFFFF
+
+  # AMOLEDBlack（固定纯黑，OLED 省电）
+  #   #000 底 / #2E2E2E 键 / #141414 功能键 / bar #373737 / 强调 #80CBC4
+  fcitx5_amoled:
+    name: "Fcitx5 纯黑"
+    primary_color: 0x80CBC4
+    keyboard_background:
+      type: solid
+      color: 0x000000
+      color_dark: 0x000000
+    keyboard_bg_color: 0x000000
+    key_bg_color: 0x2E2E2E
+    key_bg_color_dark: 0x2E2E2E
+    special_key_bg_color: 0x141414
+    special_key_bg_color_dark: 0x141414
+    candidate_bar_background:
+      type: solid
+      color: 0x373737
+      color_dark: 0x373737
+    key_text_color: 0xFFFFFF
+    key_text_color_dark: 0xFFFFFF
+    candidate_text_color: 0xFFFFFF
+    candidate_text_color_dark: 0xFFFFFF
+    candidate_selected_bg_color: 0x26A69A
+    candidate_selected_bg_color_dark: 0x26A69A
+    candidate_selected_text_color: 0xFFFFFF
+    candidate_selected_text_color_dark: 0xFFFFFF
+
+  # Monokai（固定深色）
+  #   #272822 底 / #33342C 键 / #2D2E27 功能键 / #D6D6D6 字 / 强调 #B05279
+  fcitx5_monokai:
+    name: "Fcitx5 Monokai"
+    primary_color: 0xB05279
+    keyboard_background:
+      type: solid
+      color: 0x272822
+      color_dark: 0x272822
+    keyboard_bg_color: 0x272822
+    key_bg_color: 0x33342C
+    key_bg_color_dark: 0x33342C
+    special_key_bg_color: 0x2D2E27
+    special_key_bg_color_dark: 0x2D2E27
+    candidate_bar_background:
+      type: solid
+      color: 0x1F201B
+      color_dark: 0x1F201B
+    key_text_color: 0xD6D6D6
+    key_text_color_dark: 0xD6D6D6
+    candidate_text_color: 0xD6D6D6
+    candidate_text_color_dark: 0xD6D6D6
+    candidate_selected_bg_color: 0xB05279
+    candidate_selected_bg_color_dark: 0xB05279
+    candidate_selected_text_color: 0xD6D6D6
+    candidate_selected_text_color_dark: 0xD6D6D6
+
+keyboard:
+  # ── 键面几何：fcitx5 的出厂默认值 ──
+  #   ThemePrefs.keyRadius = 4dp
+  #   keyHorizontalMargin = 3dp（左右各 3 → 缝 6dp）
+  #   keyVerticalMargin   = 7dp（上下各 7 → 缝 14dp）
+  #   keyBorder 默认关闭 → KeyView 走纯色圆角块，没有投影（对应 shadow.enabled: false）
+  # 竖缝明显大于横缝是 fcitx5 的观感特征，只改圆角会不像。
+  key:
+    corner_radius: 4
+    spacing_x: 3
+    spacing_y: 7
+    # 基座给 number(2/2) 与 symbol(2/4) 单独调过间距，这里必须显式盖回 3/7，
+    # 否则数字键盘和符号面板的缝会比 26 键窄 —— fcitx5 是全局同一套 margin，各键盘一致。
+    # （t9 / stroke 不覆盖：fcitx5 没有这两种键盘，留给基座默认值）
+    number: { spacing_x: 3, spacing_y: 7 }
+    symbol: { spacing_x: 3, spacing_y: 7 }
+
+  shadow:
+    enabled: false
+    shape_radius: 4
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 26 键全键盘（中文）——fcitx5 TextKeyboard.Layout
+  # alt 符号即 fcitx5 键帽上的小字：Q行 1-0，A行 @ * + - = / # ( )，Z行 ' : " ? ! ~ \
+  # 与 Gboard/搜狗不同，fcitx5 的 alt 是「上滑直接上屏」的符号，不是数字角标
+  # ═════════════════════════════════════════════════════════════════════════
+  qwerty:
+    button_layout: standard
+    layout:
+      columns: 10
+      rows:
+        - [q, w, e, r, t, y, u, i, o, p]
+        - [a, s, d, f, g, h, j, k, l]
+        - [shift, z, x, c, v, b, n, m, delete]
+        - [mode_change, comma, earth, space, period, enter]
+    keys:
+      # ── 第一行：alt = 1…0 ──
+      q: { tap: "q", swipe_up: { label: "1", value: "1" } }
+      w: { tap: "w", swipe_up: { label: "2", value: "2" } }
+      e: { tap: "e", swipe_up: { label: "3", value: "3" } }
+      r: { tap: "r", swipe_up: { label: "4", value: "4" } }
+      t: { tap: "t", swipe_up: { label: "5", value: "5" } }
+      y: { tap: "y", swipe_up: { label: "6", value: "6" } }
+      u: { tap: "u", swipe_up: { label: "7", value: "7" } }
+      i: { tap: "i", swipe_up: { label: "8", value: "8" } }
+      o: { tap: "o", swipe_up: { label: "9", value: "9" } }
+      p: { tap: "p", swipe_up: { label: "0", value: "0" } }
+
+      # ── 第二行：alt = @ * + - = / # ( ) ──
+      a: { tap: "a", swipe_up: { label: "@", value: "@" } }
+      s: { tap: "s", swipe_up: { label: "*", value: "*" } }
+      d: { tap: "d", swipe_up: { label: "+", value: "+" } }
+      f: { tap: "f", swipe_up: { label: "-", value: "-" } }
+      g: { tap: "g", swipe_up: { label: "=", value: "=" } }
+      h: { tap: "h", swipe_up: { label: "/", value: "/" } }
+      j: { tap: "j", swipe_up: { label: "#", value: "#" } }
+      k: { tap: "k", swipe_up: { label: "(", value: "(" } }
+      l: { tap: "l", swipe_up: { label: ")", value: ")" } }
+
+      # ── 第三行：alt = ' : " ? ! ~ \ ──
+      z: { tap: "z", swipe_up: { label: "'", value: "'" } }
+      x: { tap: "x", swipe_up: { label: ":", value: ":" } }
+      c: { tap: "c", swipe_up: { label: '"', value: '"' } }
+      v: { tap: "v", swipe_up: { label: "?", value: "?" } }
+      b: { tap: "b", swipe_up: { label: "!", value: "!" } }
+      n: { tap: "n", swipe_up: { label: "~", value: "~" } }
+      m: { tap: "m", swipe_up: { label: "\\", value: "\\" } }
+
+      # ── 功能键 ──
+      # fcitx5：CapsKey（点=首次大写，双击/长按=锁定）宽 0.15 → 1.5 列
+      # keys 是整键覆盖，行为必须一并写出，只写 width 会把点按行为丢掉
+      shift:
+        width: 1.5
+        tap: { action: command, value: shift_single }
+        double_tap: { action: command, value: shift_caps }
+        long_press: { action: command, value: shift_caps, bubble: false }
+      # BackspaceKey：点删、长按连删；上滑清空 / 下滑撤回沿用基座
+      delete:
+        width: 1.5
+        tap: { action: delete }
+        long_press: { values: [{ action: delete, label: "删除" }] }
+        swipe_up: { action: clear_all, label: "上滑清空" }
+        swipe_down: { action: undo_clear, label: "下滑撤回" }
+        swipe_left: { action: command, value: clear_composition }
+        swipe_right: { action: command, value: clear_composition }
+
+      # ?123：fcitx5 的 LayoutSwitchKey("?123")，单击进数字键盘
+      # 长按给「常用符号」留一个入口（fcitx5 里符号在数字键盘的 !?# 里）
+      mode_change:
+        width: 1.5
+        tap: { label: "?123", action: command, value: mode_change_number, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "常用符号", action: command, value: mode_change_common_symbol }
+
+      # 逗号：fcitx5 的 CommaKey 键面画着表情图标（ImageText + ic_baseline_tag_faces），
+      # 长按弹 Emoji / QuickPhrase / Unicode 菜单。Xime 用 emoji 字符画在键面、
+      # 上滑进表情面板；长按保留标点候选。
+      comma:
+        width: 1.0
+        tap: { label: "，", value: "," }
+        swipe_up: { label: "😊", action: switch_route, value: emoji, display: key, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { action: commit, value: "，" }
+            - { action: commit, value: "、" }
+            - { action: commit, value: "," }
+
+      # 地球：fcitx5 的 LanguageKey —— 点按切中英、长按选择输入法
+      earth:
+        width: 1.0
+        tap: { label: "@language", action: toggle_ascii, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "选择输入法", action: command, value: show_ime_picker }
+
+      # 空格：fcitx5 的空格权重 0（吃掉剩余宽度）→ 4.0 列；长按语音
+      space:
+        width: 4.0
+        tap: { action: space }
+        long_press: { label: "语音", action: voice, bubble: false }
+
+      # 句号：fcitx5 的 SymbolKey(".") 宽 0.1
+      period:
+        width: 1.0
+        tap: { label: "。", value: "." }
+        long_press:
+          display: bubble
+          values:
+            - { action: commit, value: "。" }
+            - { action: commit, value: "，" }
+            - { action: commit, value: "？" }
+            - { action: commit, value: "！" }
+
+      # 回车：fcitx5 是圆形强调色按钮，Xime 只能圆角矩形 + 功能键色（说明 1）
+      enter: { width: 1.5, tap: { action: enter, bubble: false } }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 26 键全键盘（英文）——键位与中文一致，标点用半角
+  # ═════════════════════════════════════════════════════════════════════════
+  qwerty_en:
+    button_layout: standard
+    layout:
+      columns: 10
+      rows:
+        - [q, w, e, r, t, y, u, i, o, p]
+        - [a, s, d, f, g, h, j, k, l]
+        - [shift, z, x, c, v, b, n, m, delete]
+        - [mode_change, comma, earth, space, period, enter]
+    keys:
+      q: { tap: "q", swipe_up: { label: "1", value: "1" } }
+      w: { tap: "w", swipe_up: { label: "2", value: "2" } }
+      e: { tap: "e", swipe_up: { label: "3", value: "3" } }
+      r: { tap: "r", swipe_up: { label: "4", value: "4" } }
+      t: { tap: "t", swipe_up: { label: "5", value: "5" } }
+      y: { tap: "y", swipe_up: { label: "6", value: "6" } }
+      u: { tap: "u", swipe_up: { label: "7", value: "7" } }
+      i: { tap: "i", swipe_up: { label: "8", value: "8" } }
+      o: { tap: "o", swipe_up: { label: "9", value: "9" } }
+      p: { tap: "p", swipe_up: { label: "0", value: "0" } }
+      a: { tap: "a", swipe_up: { label: "@", value: "@" } }
+      s: { tap: "s", swipe_up: { label: "*", value: "*" } }
+      d: { tap: "d", swipe_up: { label: "+", value: "+" } }
+      f: { tap: "f", swipe_up: { label: "-", value: "-" } }
+      g: { tap: "g", swipe_up: { label: "=", value: "=" } }
+      h: { tap: "h", swipe_up: { label: "/", value: "/" } }
+      j: { tap: "j", swipe_up: { label: "#", value: "#" } }
+      k: { tap: "k", swipe_up: { label: "(", value: "(" } }
+      l: { tap: "l", swipe_up: { label: ")", value: ")" } }
+      z: { tap: "z", swipe_up: { label: "'", value: "'" } }
+      x: { tap: "x", swipe_up: { label: ":", value: ":" } }
+      c: { tap: "c", swipe_up: { label: '"', value: '"' } }
+      v: { tap: "v", swipe_up: { label: "?", value: "?" } }
+      b: { tap: "b", swipe_up: { label: "!", value: "!" } }
+      n: { tap: "n", swipe_up: { label: "~", value: "~" } }
+      m: { tap: "m", swipe_up: { label: "\\", value: "\\" } }
+
+      shift:
+        width: 1.5
+        tap: { action: command, value: shift_single }
+        double_tap: { action: command, value: shift_caps }
+        long_press: { action: command, value: shift_caps, bubble: false }
+      delete:
+        width: 1.5
+        tap: { action: delete }
+        long_press: { values: [{ action: delete, label: "删除" }] }
+        swipe_up: { action: clear_all, label: "上滑清空" }
+        swipe_down: { action: undo_clear, label: "下滑撤回" }
+        swipe_left: { action: command, value: clear_composition }
+        swipe_right: { action: command, value: clear_composition }
+      mode_change:
+        width: 1.5
+        tap: { label: "?123", action: command, value: mode_change_number, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "常用符号", action: command, value: mode_change_common_symbol }
+      # 英文态的手势提示取的是 value（"emoji"），display: key 会把路由名印在键上，
+      # 所以只绑动作不画提示（与 gboard 那份同样的处理）
+      comma:
+        width: 1.0
+        tap: { label: ",", value: "," }
+        swipe_up: { label: "😊", action: switch_route, value: emoji, display: bubble, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { action: commit, value: "," }
+            - { action: commit, value: "." }
+      earth:
+        width: 1.0
+        tap: { label: "@language", action: toggle_ascii, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "选择输入法", action: command, value: show_ime_picker }
+      space:
+        width: 4.0
+        tap: { action: space }
+        long_press: { label: "语音", action: voice, bubble: false }
+      period:
+        width: 1.0
+        tap: { label: ".", value: "." }
+        long_press:
+          display: bubble
+          values:
+            - { action: commit, value: "." }
+            - { action: commit, value: "," }
+            - { action: commit, value: "?" }
+            - { action: commit, value: "!" }
+      enter: { width: 1.5, tap: { action: enter, bubble: false } }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 数字键盘（fcitx5 NumberKeyboard）——5 列小键盘
+  #   + 1 2 3 /        （1.5 / 2.333×3 / 1.5）
+  #   - 4 5 6 空格     （空格是 fcitx5 的 MiniSpaceKey，0.15 → 1.5）
+  #   * 7 8 9 退格
+  #   ABC , !?# 0 = . 换行（1.5 / 1.0 / 1.333 / 2.333 / 1.333 / 1.0 / 1.5）
+  # 数字列在 fcitx5 里是权重 0（均分剩余宽度），换算后每列 2.333。
+  # ═════════════════════════════════════════════════════════════════════════
+  number:
+    type: full
+    layout:
+      rows:
+        - ["+", "1", "2", "3", "/"]
+        - ["-", "4", "5", "6", space_key]
+        - ["*", "7", "8", "9", delete]
+        - [back, ",", open_symbols, "0", "=", ".", enter]
+    keys:
+      # 运算符号列（fcitx5 的 NumPadKey 0.15 → 1.5）
+      "+": { width: 1.5 }
+      "-": { width: 1.5 }
+      "*": { width: 1.5 }
+      "/": { width: 1.5 }
+      # 数字与 0 列（权重 0 均分 → 2.333）
+      "1": { width: 2.333 }
+      "2": { width: 2.333 }
+      "3": { width: 2.333 }
+      "4": { width: 2.333 }
+      "5": { width: 2.333 }
+      "6": { width: 2.333 }
+      "7": { width: 2.333 }
+      "8": { width: 2.333 }
+      "9": { width: 2.333 }
+      "0": { width: 2.333 }
+      # 底行：ABC 返回字母、逗号、符号入口、等号、句号、换行
+      back: { width: 1.5, tap: { label: "ABC" } }
+      ",": { width: 1.0 }
+      open_symbols: { width: 1.333 }
+      "=": { width: 1.333 }
+      ".": { width: 1.0 }
+      space_key: { width: 1.5 }
+      delete: { width: 1.5 }
+      enter: { width: 1.5, tap: { action: send_rime, value: enter, label: "换行" } }

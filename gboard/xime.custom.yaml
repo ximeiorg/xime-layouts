@@ -1,0 +1,582 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Gboard 风格布局（Xime / 安卓）
+#
+# 参考：Gboard 实机截图（654×529，键面 51×72、横缝 10、竖缝 19、圆角 ≈6）
+#       26 键全键盘、九宫格拼音、？123 符号面板、纯黑与渐变主题
+# 基座：Xime/app/src/main/assets/xime.yaml（未写的键自动回退基座值）
+#
+# 安装：把本文件放到 Xime 用户目录 rime/xime.custom.yaml
+#       （Android/data/<包名>/files/rime/），然后在键盘设置里重新部署/重启输入法。
+#
+# 覆盖范围：
+#   · 键面几何：圆角 4dp、横缝 6.5dp、竖缝 11.5dp、无阴影
+#              （三项比例照截图换算；Gboard 是「窄高 + 大缝 + 小圆角」，只改圆角会更不像）
+#   · 主题色：全部来自 Gboard 18.5.9 自带的配色表，不是目测 ——
+#             APK 内 assets/theme/style_sheet_color_*.binarypb（protobuf 二进制），
+#             逐字段解析出 keyboard_background_primary / bordered_key / bordered_key_dark /
+#             generic_accent / label 五组颜色，再用 adb 截真实键盘逐点核对。
+#   · Gboard 皮肤（共 7 套，只做 Gboard「主题 → 颜色」这一组）：
+#             gboard          浅色 / 深色（同一套主题，跟随系统）
+#                             浅 #F0F4F9 底 / 白键 / #E4E7E9 功能键 / 深灰字，薄荷绿强调
+#                             暗 #263238 底 / #3B464C 键 / #2E3A40 功能键 / 白字
+#             gboard_google   Google 浅色 / 深色（同上键面，强调色改为 Google 蓝）
+#                             浅强调 #1A73E8；暗 #363B40 底 / #565A5E 键，强调 #5E97F6
+#             gboard_blue     蓝     #1565C0 底 / #3F80CB 键 / #2771C4 功能键 / 白字
+#             gboard_red      红     #C62828 底 / #D04E4E 键
+#             gboard_green    绿     #43A047 底 / #64B168 键
+#             gboard_teal     蓝绿   #00695C 底 / #2E8479 键
+#             gboard_cyan     浅蓝绿 #80DEEA 底 / #ACE9F1 键 / 深灰字
+#             Gboard 把「浅色 / 深色」摆成两个格子，是因为它的主题固定、要手动选；
+#             Xime 的同一套 scheme 自带 _dark 字段会跟随系统，所以这里合成一个主题。
+#             彩色 4 套是固定色（亮暗同款），与 Gboard 自身行为一致。
+#   · 26 键：字母键不带数字角标（Gboard 没有上滑数字）、长按出变音符号
+#            （q/f/j/x/v/b/m 这类没有变音符的字母长按仍走 Xime 内置的小写/大写气泡），
+#            底行 ?123 1.5 / ，1.0 / 地球 1.0 / 空格 4.0 / 。1.0 / 换行 1.5
+#            （Gboard 原版是 ?123 1.5 / ，1.0 / 空格 5.1 / 。1.0 / 换行 1.5，
+#              键盘上没有中英键；这里挤 1 列给地球键，空格相应收窄）
+#            逗号上滑 = 表情面板（Gboard 逗号键上的表情入口）
+#   · 九键：左栏候选 + 符号，1=分词，2-9 字母，底行 123 空格 中英，
+#            右栏 退格 / 重输 / 换行（Gboard 右栏只有退格与换行，见说明 8）
+#   · ？123 面板：1-0 / @ # $ _ & - + ( ) / ，* " ' : ; ! ? = % ~，底行 ABC ， 空格 。 换行
+#
+# 说明（Gboard 特性与 Xime 渲染层限制，不是配置漏写）：
+#   1. Gboard 顶部有一整条工具栏（G 标、翻译、麦克风、表情、设置齿轮），
+#      Xime 的候选栏由引擎绘制，YAML 只能改配色，做不出那条工具栏。
+#   2. 空格键文字由 Xime 固定（26 键/九键 = 方案名），Gboard 空格上并没有文字，
+#      只在输入态显示“空格”一类的提示，无法复刻；长按空格 = 语音，行为保留。
+#   3. Gboard 中文把「中/英」放在工具栏左上角的「中」图标里，键盘上不占键位。
+#      Xime 没有那个图标位，所以本布局把地球键放在空格左边（Gboard 多语言时
+#      地球键也正好在这个位置），单击切中英、长按选择输入法。
+#   4. Gboard 的键分三档色：字母键、功能键（Shift/退格）、强调键（?123/换行，薄荷底）。
+#      Xime 只有「普通键 / 功能键」两档，所以 ?123 和换行只能跟 Shift 同色；
+#      想让它们变薄荷底，只能等渲染层加第三档键色。强调色仍用在候选栏图标上。
+#   5. Gboard 的「按键边框（Key borders）」Xime 没有对应开关；Gboard 默认关边框，
+#      所以这里也关掉阴影，靠键色与底色的亮度差、以及大缝来分区。
+#   6. Gboard 有两页符号面板（?123 与 =\<），Xime 只有一个 common_symbols，
+#      这里把两页常用的并成一页，底行左键为 ABC（返回字母键盘）。Gboard 没有
+#      open_symbols 这个入口，所以面板里也不放它（全量符号面板仍可从数字面板进入）。
+#   7. Gboard 没有独立数字键盘，本文不覆盖 keyboard.number（数字面板不是 Gboard 的
+#      界面，覆盖反而会画出不存在的样式）；需要时从 ?123 长按「数字」或九键的 123 进入，
+#      配色会自动跟随本主题。
+#   8. Gboard 九键右栏只有「退格（上）」和「换行（下）」，Xime 的右栏按键会等高铺满，
+#      两键会各占一半显得过高，所以保留 Xime 的「重输」做三键。不想要删掉 clear 即可。
+#   9. 平板（smallestWidth ≥ 600dp）会自动套用 Xime 内置的 qwerty_tablet 等分段，
+#      那套排布本身就是照 Gboard 平板做的（Tab / caps / 左右光标），本文件只覆盖手机布局。
+#  10. 默认主题的暗色是截图逐点取色（底/键/功能键/字），亮色按 Gboard 亮色的同结构换算；
+#      渐变皮肤的端点色取自 Gboard 渐变主题截图，键面用半透明白让底色透上来。
+#  11. Gboard 在 Android 12+ 会跟随壁纸取色（Material You），截图里的薄荷就是壁纸来的。
+#      想完全跟随壁纸，把 style.color_scheme.light/dark 改成内置的 dynamic 即可。
+#  12. Gboard 的滑行输入、单手模式、浮动键盘都是输入法内部行为，配置层管不到。
+#  13. Gboard 的逗号键上滑是表情入口（笑脸图标画在逗号上方）。这里用
+#      `switch_route: emoji` 复刻，键面提示直接写 emoji 字符 😊（Xime 的手势提示
+#      只能是字符，接不了矢量图标）。英文键盘那边 CommaCell 的提示取的是 value
+#      （"emoji"），会把路由名印在键面上，所以英文态只绑动作、不画提示
+#      （display: bubble + bubble: false）。想让英文态也显示 😊，把
+#      KeyboardLayout.CommaCell 里 k2SwipeUpLabel 的 isAsciiMode 分支改成
+#      「label 优先、value 兜底」即可（EarthCell 同理）。
+#  14. ?123 单击固定走 mode_change_common_symbol，不用内置的 mode_change：后者的目标是
+#      「上次选过的面板」并被持久化（SettingsPreferences.modeChangeTargetIsNumber），
+#      长按选过一次「数字」后，之后每次点 ?123 都会进数字面板 —— 这就是「功能反了」。
+#      长按气泡的两项顺序也照 Xime 固定的图标来排：第一项恒为 t9 九宫格图标、第二项恒为
+#      t26 全键盘图标，所以数字面板放第一位、常用符号放第二位。
+#  15. 符号面板与数字面板都是 10 列、键面尺寸和字母键相同，圆角/缝应当与字母键一致，
+#      所以这里不写 number / symbol 覆盖，直接继承 key 段的 4 / 3.25 / 5.75。
+#      坑：Key 段的键名不等于面板段名 —— 通用符号面板的段名是 common_symbols，
+#      但 KeyboardView 取圆角时传的是 "symbol"（见 KV.kt:1206），所以以前写的
+#      `symbol: { corner_radius: 8 }` 正好把 ？123 面板撑成 8dp，比字母键圆一倍。
+#      要单独调这一页，改的是 `key.symbol`；`key.common_symbols` 不会生效。
+# ═══════════════════════════════════════════════════════════════════════════
+
+metadata:
+  app_name: Xime
+  app_version: ">=3.0.0"
+  platform: android
+  config_version: 1
+  generator: "Xime Config Generator" # 暂时无用
+  modified_time: "2026-11-06"
+
+style:
+  # 亮色用「浅色」、暗色用「深色」，与 Gboard 跟随系统的行为一致
+  color_scheme:
+    light: gboard
+    dark: gboard
+  dark_mode: 2 # 0=浅色 1=深色 2=跟随系统
+
+color_schemes:
+  # ─────────────────────────────────────────────────────────────────────────
+  # 全部取自 Gboard 18.5.9 自带配色表，不是目测：
+  #   APK 内 assets/theme/style_sheet_color_*.binarypb（protobuf）逐字段解析：
+  #     default_keyboard_background_primary_color   → keyboard_bg_color
+  #     default_bordered_key_color                  → key_bg_color
+  #     default_bordered_key_dark_color             → special_key_bg_color
+  #     default_generic_accent_color                → primary_color
+  #     default_label_color                         → key_text_color
+  #   并用 adb 截图（Note 搜索框里的真实键盘）逐点校验过，两处结果一致。
+  #
+  # 只做 Gboard「主题 → 颜色」这一组。Gboard 把「浅色 / 深色」摆成两个格子，
+  # 是因为它的主题是固定色、要由用户手动选；Xime 的同一套 scheme 本身带 _dark
+  # 字段、会跟随系统切换，所以这两对本就该合成一个主题（也是这里唯一的差异）。
+  # ─────────────────────────────────────────────────────────────────────────
+
+  # 浅色 / 深色：中性键面 + 薄荷绿强调，跟随系统
+  #   浅 #F0F4F9 底 / #FFFFFF 键 / #E4E7E9 功能键 / #1F1F1F 字
+  #   深 #263238 底 / #3B464C 键 / #2E3A40 功能键 / #FFFFFF 字
+  gboard:
+    name: "Gboard 浅色 / 深色"
+    primary_color: 0x4DB6AC
+    keyboard_background:
+      type: solid
+      color: 0xF0F4F9
+      color_dark: 0x263238
+    keyboard_bg_color: 0xF0F4F9
+    key_bg_color: 0xFFFFFF
+    key_bg_color_dark: 0x3B464C
+    special_key_bg_color: 0xE4E7E9
+    special_key_bg_color_dark: 0x2E3A40
+    candidate_bar_bg_color: 0xF0F4F9
+    key_text_color: 0x1F1F1F
+    key_text_color_dark: 0xFFFFFF
+    candidate_text_color: 0x1F1F1F
+    candidate_text_color_dark: 0xFFFFFF
+    # 选中候选：亮用浅色主题的薄荷绿 #4DB6AC，暗用深色主题的 #84CBC5
+    candidate_selected_bg_color: 0x334DB6AC
+    candidate_selected_bg_color_dark: 0x3384CBC5
+    candidate_selected_text_color: 0x2A7C74
+    candidate_selected_text_color_dark: 0x84CBC5
+
+  # Google 浅色 / 深色：同一套键面，强调色换成 Google 蓝，跟随系统
+  #   浅 = 浅色键面 + #1A73E8；深 = #363B40 底 / #565A5E 键 + #5E97F6
+  gboard_google:
+    name: "Gboard Google 浅色 / 深色"
+    primary_color: 0x1A73E8
+    keyboard_background:
+      type: solid
+      color: 0xF0F4F9
+      color_dark: 0x363B40
+    keyboard_bg_color: 0xF0F4F9
+    key_bg_color: 0xFFFFFF
+    key_bg_color_dark: 0x565A5E
+    special_key_bg_color: 0xE4E7E9
+    special_key_bg_color_dark: 0x454B50
+    candidate_bar_bg_color: 0xF0F4F9
+    key_text_color: 0x1F1F1F
+    key_text_color_dark: 0xFFFFFF
+    candidate_text_color: 0x1F1F1F
+    candidate_text_color_dark: 0xFFFFFF
+    candidate_selected_bg_color: 0x331A73E8
+    candidate_selected_bg_color_dark: 0x335E97F6
+    candidate_selected_text_color: 0x1255B0
+    candidate_selected_text_color_dark: 0x5E97F6
+
+  # 蓝色：style_sheet_color_blue.binarypb
+  #   底 #1565C0（Blue 800）· 字母键 #3F80CB · 功能键 #2771C4 · 强调 #2196F3 · 白字
+  gboard_blue:
+    name: "Gboard 蓝"
+    primary_color: 0x2196F3
+    keyboard_background:
+      type: solid
+      color: 0x1565C0
+      color_dark: 0x1565C0
+    keyboard_bg_color: 0x1565C0
+    key_bg_color: 0x3F80CB
+    key_bg_color_dark: 0x3F80CB
+    special_key_bg_color: 0x2771C4
+    special_key_bg_color_dark: 0x2771C4
+    candidate_bar_bg_color: 0x1565C0
+    key_text_color: 0xFFFFFF
+    key_text_color_dark: 0xFFFFFF
+    candidate_text_color: 0xFFFFFF
+    candidate_text_color_dark: 0xFFFFFF
+    candidate_selected_bg_color: 0x33FFFFFF
+    candidate_selected_bg_color_dark: 0x33FFFFFF
+    candidate_selected_text_color: 0xFFFFFF
+    candidate_selected_text_color_dark: 0xFFFFFF
+
+  # 红色：style_sheet_color_red.binarypb
+  gboard_red:
+    name: "Gboard 红"
+    primary_color: 0xF44336
+    keyboard_background:
+      type: solid
+      color: 0xC62828
+      color_dark: 0xC62828
+    keyboard_bg_color: 0xC62828
+    key_bg_color: 0xD04E4E
+    key_bg_color_dark: 0xD04E4E
+    special_key_bg_color: 0xCA3838
+    special_key_bg_color_dark: 0xCA3838
+    candidate_bar_bg_color: 0xC62828
+    key_text_color: 0xFFFFFF
+    key_text_color_dark: 0xFFFFFF
+    candidate_text_color: 0xFFFFFF
+    candidate_text_color_dark: 0xFFFFFF
+    candidate_selected_bg_color: 0x33FFFFFF
+    candidate_selected_bg_color_dark: 0x33FFFFFF
+    candidate_selected_text_color: 0xFFFFFF
+    candidate_selected_text_color_dark: 0xFFFFFF
+
+  # 绿色：style_sheet_color_green.binarypb
+  gboard_green:
+    name: "Gboard 绿"
+    primary_color: 0x2D7D32
+    keyboard_background:
+      type: solid
+      color: 0x43A047
+      color_dark: 0x43A047
+    keyboard_bg_color: 0x43A047
+    key_bg_color: 0x64B168
+    key_bg_color_dark: 0x64B168
+    special_key_bg_color: 0x51A755
+    special_key_bg_color_dark: 0x51A755
+    candidate_bar_bg_color: 0x43A047
+    key_text_color: 0xFFFFFF
+    key_text_color_dark: 0xFFFFFF
+    candidate_text_color: 0xFFFFFF
+    candidate_text_color_dark: 0xFFFFFF
+    candidate_selected_bg_color: 0x33FFFFFF
+    candidate_selected_bg_color_dark: 0x33FFFFFF
+    candidate_selected_text_color: 0xFFFFFF
+    candidate_selected_text_color_dark: 0xFFFFFF
+
+  # 蓝绿色（深）：style_sheet_color_teal.binarypb
+  gboard_teal:
+    name: "Gboard 蓝绿"
+    primary_color: 0x4DB6AC
+    keyboard_background:
+      type: solid
+      color: 0x00695C
+      color_dark: 0x00695C
+    keyboard_bg_color: 0x00695C
+    key_bg_color: 0x2E8479
+    key_bg_color_dark: 0x2E8479
+    special_key_bg_color: 0x147468
+    special_key_bg_color_dark: 0x147468
+    candidate_bar_bg_color: 0x00695C
+    key_text_color: 0xFFFFFF
+    key_text_color_dark: 0xFFFFFF
+    candidate_text_color: 0xFFFFFF
+    candidate_text_color_dark: 0xFFFFFF
+    candidate_selected_bg_color: 0x33FFFFFF
+    candidate_selected_bg_color_dark: 0x33FFFFFF
+    candidate_selected_text_color: 0xFFFFFF
+    candidate_selected_text_color_dark: 0xFFFFFF
+
+  # 蓝绿色（浅）：style_sheet_color_cyan.binarypb —— 浅底，字用深色
+  gboard_cyan:
+    name: "Gboard 浅蓝绿"
+    primary_color: 0x00ACC1
+    keyboard_background:
+      type: solid
+      color: 0x80DEEA
+      color_dark: 0x80DEEA
+    keyboard_bg_color: 0x80DEEA
+    key_bg_color: 0xACE9F1
+    key_bg_color_dark: 0xACE9F1
+    special_key_bg_color: 0x99E4EE
+    special_key_bg_color_dark: 0x99E4EE
+    candidate_bar_bg_color: 0x80DEEA
+    key_text_color: 0x1F1F1F
+    key_text_color_dark: 0x1F1F1F
+    candidate_text_color: 0x1F1F1F
+    candidate_text_color_dark: 0x1F1F1F
+    candidate_selected_bg_color: 0x3300ACC1
+    candidate_selected_bg_color_dark: 0x3300ACC1
+    candidate_selected_text_color: 0x00707E
+    candidate_selected_text_color_dark: 0x00707E
+
+keyboard:
+  # ── 键面圆角 / 间距（按实机截图实测的比例换算到 Xime 的 44dp 键高）──
+  # 截图：654px 宽，键面 51×72，横缝 10，竖缝 19，圆角约 6
+  #   · 圆角 / 键高 = 6 / 72 ≈ 0.083 → 44dp 键高约 3.7dp，取 4
+  #   · 横缝 / 键宽 = 10 / 51 ≈ 0.196 → 键宽约 34dp 时缝约 6.7dp（spacing_x 按“左右各留”算缝宽的一半）
+  #   · 竖缝 / 键高 = 19 / 72 ≈ 0.264 → 44dp 键高时缝约 11.6dp
+  # Gboard 的键是「窄高 + 大缝 + 小圆角」，这三项一起才像，单改圆角会更不像
+  key:
+    corner_radius: 4
+    spacing_x: 3.25      # 实际横缝 ≈6.5dp
+    spacing_y: 5.75      # 实际竖缝 ≈11.5dp，Gboard 行距明显比列距大
+    # 只有九键的键明显更大（3 列），圆角同比放大；符号面板与数字面板都是
+    # 10 列、键面尺寸与字母键一致，所以不单独覆盖，直接继承上面的 4 / 3.25 / 5.75
+    t9: { corner_radius: 10, spacing_x: 4, spacing_y: 4 }
+
+  # Gboard 的键是纯色块：没有投影，也没有按键边框（Key borders 在 Xime 里画不出来）。
+  # 所以这里关掉阴影，靠「键色与底色的亮度差 + 大缝」区分按键，和 Gboard 一致。
+  shadow:
+    enabled: false
+    shape_radius: 4
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 26 键全键盘（中文）——Gboard 排布
+  # 字母键没有数字角标（Gboard 无上滑数字），长按只出变音符号，大小写交给 Shift
+  # ═════════════════════════════════════════════════════════════════════════
+  qwerty:
+    button_layout: standard
+    layout:
+      columns: 10
+      rows:
+        - [q, w, e, r, t, y, u, i, o, p]
+        - [a, s, d, f, g, h, j, k, l]
+        - [shift, z, x, c, v, b, n, m, delete]
+        - [mode_change, comma, earth, space, period, enter]
+    keys:
+      # ── 第一行：长按变音符号（与 Gboard 英文键盘一致，不含大写）──
+      q: { tap: "q" }
+      w: { tap: "w", long_press: { display: "bubble", values: [{ action: commit, value: "w" }, { action: commit, value: "ŵ" }] } }
+      e: { tap: "e", long_press: { display: "bubble", values: [{ action: commit, value: "e" }, { action: commit, value: "è" }, { action: commit, value: "é" }, { action: commit, value: "ê" }, { action: commit, value: "ë" }, { action: commit, value: "ē" }, { action: commit, value: "ė" }, { action: commit, value: "ę" }] } }
+      r: { tap: "r", long_press: { display: "bubble", values: [{ action: commit, value: "r" }, { action: commit, value: "ŕ" }, { action: commit, value: "ř" }] } }
+      t: { tap: "t", long_press: { display: "bubble", values: [{ action: commit, value: "t" }, { action: commit, value: "ť" }, { action: commit, value: "þ" }] } }
+      y: { tap: "y", long_press: { display: "bubble", values: [{ action: commit, value: "y" }, { action: commit, value: "ý" }, { action: commit, value: "ÿ" }] } }
+      u: { tap: "u", long_press: { display: "bubble", values: [{ action: commit, value: "u" }, { action: commit, value: "û" }, { action: commit, value: "ü" }, { action: commit, value: "ù" }, { action: commit, value: "ú" }, { action: commit, value: "ū" }] } }
+      i: { tap: "i", long_press: { display: "bubble", values: [{ action: commit, value: "i" }, { action: commit, value: "î" }, { action: commit, value: "ï" }, { action: commit, value: "í" }, { action: commit, value: "ì" }, { action: commit, value: "ī" }, { action: commit, value: "į" }] } }
+      o: { tap: "o", long_press: { display: "bubble", values: [{ action: commit, value: "o" }, { action: commit, value: "ô" }, { action: commit, value: "ö" }, { action: commit, value: "ò" }, { action: commit, value: "ó" }, { action: commit, value: "œ" }, { action: commit, value: "ø" }, { action: commit, value: "ō" }, { action: commit, value: "õ" }] } }
+      p: { tap: "p" }
+
+      # ── 第二行 ──
+      a: { tap: "a", long_press: { display: "bubble", values: [{ action: commit, value: "a" }, { action: commit, value: "à" }, { action: commit, value: "á" }, { action: commit, value: "â" }, { action: commit, value: "ä" }, { action: commit, value: "æ" }, { action: commit, value: "ã" }, { action: commit, value: "å" }, { action: commit, value: "ā" }] } }
+      s: { tap: "s", long_press: { display: "bubble", values: [{ action: commit, value: "s" }, { action: commit, value: "ß" }, { action: commit, value: "ś" }, { action: commit, value: "š" }] } }
+      d: { tap: "d", long_press: { display: "bubble", values: [{ action: commit, value: "d" }, { action: commit, value: "ď" }, { action: commit, value: "đ" }] } }
+      f: { tap: "f" }
+      g: { tap: "g", long_press: { display: "bubble", values: [{ action: commit, value: "g" }, { action: commit, value: "ğ" }] } }
+      h: { tap: "h", long_press: { display: "bubble", values: [{ action: commit, value: "h" }, { action: commit, value: "ĥ" }] } }
+      j: { tap: "j", long_press: { display: "bubble", values: [{ action: commit, value: "j" }, { action: commit, value: "ĵ" }] } }
+      k: { tap: "k", long_press: { display: "bubble", values: [{ action: commit, value: "k" }, { action: commit, value: "ķ" }] } }
+      l: { tap: "l", long_press: { display: "bubble", values: [{ action: commit, value: "l" }, { action: commit, value: "ł" }, { action: commit, value: "ĺ" }, { action: commit, value: "ľ" }] } }
+
+      # ── 第三行 ──
+      z: { tap: "z", long_press: { display: "bubble", values: [{ action: commit, value: "z" }, { action: commit, value: "ź" }, { action: commit, value: "ž" }, { action: commit, value: "ż" }] } }
+      x: { tap: "x" }
+      c: { tap: "c", long_press: { display: "bubble", values: [{ action: commit, value: "c" }, { action: commit, value: "ç" }, { action: commit, value: "ć" }, { action: commit, value: "č" }] } }
+      v: { tap: "v" }
+      b: { tap: "b" }
+      n: { tap: "n", long_press: { display: "bubble", values: [{ action: commit, value: "n" }, { action: commit, value: "ñ" }, { action: commit, value: "ń" }] } }
+      m: { tap: "m" }
+
+      # ── 功能键 ──
+      # 底行按 Gboard 观感（以字母键为 1，合计正好 10 列，与 Q 行格子对齐）：
+      #   ?123 1.5 ：，1.0 ：地球 1.0 ：空格 4.0 ：。1.0 ：换行 1.5
+      # Shift / 退格在 Gboard 里约等于 1.5 个字母键
+      # 功能键的行为要一并写出：xime.custom.yaml 的 keys 是「同名键整体覆盖」，
+      # 只写 width 会把基座里的 shift/退格/空格手势一起丢掉
+      shift:
+        width: 1.5
+        tap: { action: command, value: shift_single }
+        double_tap: { action: command, value: shift_caps }
+      delete:
+        width: 1.5
+        tap: { action: delete }
+        long_press: { values: [{ action: delete, label: "删除" }] }
+        swipe_up: { action: clear_all, label: "上滑清空" }
+        swipe_down: { action: undo_clear, label: "下滑撤回" }
+        swipe_left: { action: command, value: clear_composition }
+        swipe_right: { action: command, value: clear_composition }
+
+      # ?123：单击进常用符号面板（Gboard 的 ？123 首页就带 1-0），长按可选数字面板
+      # ?123：单击固定进常用符号面板（Gboard 的 ？123 首页第一行就是 1-0）。
+      # 必须写 mode_change_common_symbol，不能写那个做模式切换的 mode_change：后者的
+      # 目标是「上次用过的面板」（SettingsPreferences.getModeChangeTargetIsNumber 会持久化），
+      # 只要长按选过一次「数字」，之后每次点 ?123 都进数字面板，观感就是功能反了。
+      # 长按两项的顺序要与 Xime 固定给的气泡图标对应：第一项恒为 t9（九宫格）图标、
+      # 第二项恒为 t26（全键盘）图标，九宫格对应数字面板，所以「数字」放第一位。
+      mode_change:
+        width: 1.5
+        tap: { label: "?123", action: command, value: mode_change_common_symbol, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "数字", action: command, value: mode_change_number }
+            - { label: "常用符号", action: command, value: mode_change_common_symbol }
+
+      # 逗号：键面“，”，上滑进表情面板（Gboard 的逗号键上就是表情入口，
+      # 图标画在逗号上方；Xime 的手势提示只能是字符，这里用 emoji 字符近似那个笑脸）
+      comma:
+        width: 1.0
+        tap: { label: "，", value: "," }
+        swipe_up: { label: "😊", action: switch_route, value: emoji, display: key, bubble: false }
+        long_press: { display: "bubble", values: [{ action: commit, value: "，" }, { action: commit, value: "、" }, { action: commit, value: "," }] }
+
+      # 中/英：Xime 的地球图标（label 里的 @language 是图标标记），
+      # 位置与 Gboard 多语言时地球键的位置一致：空格左侧
+      earth:
+        width: 1.0
+        tap: { label: "@language", action: toggle_ascii, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "选择输入法", action: command, value: show_ime_picker }
+
+      # 空格：Gboard 的空格很宽；点按空格、长按语音
+      space:
+        width: 4.0
+        tap: { action: space }
+        long_press: { label: "语音", action: voice, bubble: false }
+
+      # 句号：键面“。”，长按可选 。，？！
+      period:
+        width: 1.0
+        tap: { label: "。", value: "." }
+        long_press:
+          display: bubble
+          values:
+            - { action: commit, value: "。" }
+            - { action: commit, value: "，" }
+            - { action: commit, value: "？" }
+            - { action: commit, value: "！" }
+
+      # 换行：保留 Xime 的自动文案（普通文本框显示“换行”，发送场景显示“发送”）
+      enter: { width: 1.5, tap: { action: enter, bubble: false } }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 26 键全键盘（英文）——排布与中文一致，标点用半角
+  # ═════════════════════════════════════════════════════════════════════════
+  qwerty_en:
+    button_layout: standard
+    layout:
+      columns: 10
+      rows:
+        - [q, w, e, r, t, y, u, i, o, p]
+        - [a, s, d, f, g, h, j, k, l]
+        - [shift, z, x, c, v, b, n, m, delete]
+        - [mode_change, comma, earth, space, period, enter]
+    keys:
+      q: { tap: "q" }
+      w: { tap: "w", long_press: { display: "bubble", values: [{ action: commit, value: "w" }, { action: commit, value: "ŵ" }] } }
+      e: { tap: "e", long_press: { display: "bubble", values: [{ action: commit, value: "e" }, { action: commit, value: "è" }, { action: commit, value: "é" }, { action: commit, value: "ê" }, { action: commit, value: "ë" }, { action: commit, value: "ē" }, { action: commit, value: "ė" }, { action: commit, value: "ę" }] } }
+      r: { tap: "r", long_press: { display: "bubble", values: [{ action: commit, value: "r" }, { action: commit, value: "ŕ" }, { action: commit, value: "ř" }] } }
+      t: { tap: "t", long_press: { display: "bubble", values: [{ action: commit, value: "t" }, { action: commit, value: "ť" }, { action: commit, value: "þ" }] } }
+      y: { tap: "y", long_press: { display: "bubble", values: [{ action: commit, value: "y" }, { action: commit, value: "ý" }, { action: commit, value: "ÿ" }] } }
+      u: { tap: "u", long_press: { display: "bubble", values: [{ action: commit, value: "u" }, { action: commit, value: "û" }, { action: commit, value: "ü" }, { action: commit, value: "ù" }, { action: commit, value: "ú" }, { action: commit, value: "ū" }] } }
+      i: { tap: "i", long_press: { display: "bubble", values: [{ action: commit, value: "i" }, { action: commit, value: "î" }, { action: commit, value: "ï" }, { action: commit, value: "í" }, { action: commit, value: "ì" }, { action: commit, value: "ī" }, { action: commit, value: "į" }] } }
+      o: { tap: "o", long_press: { display: "bubble", values: [{ action: commit, value: "o" }, { action: commit, value: "ô" }, { action: commit, value: "ö" }, { action: commit, value: "ò" }, { action: commit, value: "ó" }, { action: commit, value: "œ" }, { action: commit, value: "ø" }, { action: commit, value: "ō" }, { action: commit, value: "õ" }] } }
+      p: { tap: "p" }
+      a: { tap: "a", long_press: { display: "bubble", values: [{ action: commit, value: "a" }, { action: commit, value: "à" }, { action: commit, value: "á" }, { action: commit, value: "â" }, { action: commit, value: "ä" }, { action: commit, value: "æ" }, { action: commit, value: "ã" }, { action: commit, value: "å" }, { action: commit, value: "ā" }] } }
+      s: { tap: "s", long_press: { display: "bubble", values: [{ action: commit, value: "s" }, { action: commit, value: "ß" }, { action: commit, value: "ś" }, { action: commit, value: "š" }] } }
+      d: { tap: "d", long_press: { display: "bubble", values: [{ action: commit, value: "d" }, { action: commit, value: "ď" }, { action: commit, value: "đ" }] } }
+      f: { tap: "f" }
+      g: { tap: "g", long_press: { display: "bubble", values: [{ action: commit, value: "g" }, { action: commit, value: "ğ" }] } }
+      h: { tap: "h", long_press: { display: "bubble", values: [{ action: commit, value: "h" }, { action: commit, value: "ĥ" }] } }
+      j: { tap: "j", long_press: { display: "bubble", values: [{ action: commit, value: "j" }, { action: commit, value: "ĵ" }] } }
+      k: { tap: "k", long_press: { display: "bubble", values: [{ action: commit, value: "k" }, { action: commit, value: "ķ" }] } }
+      l: { tap: "l", long_press: { display: "bubble", values: [{ action: commit, value: "l" }, { action: commit, value: "ł" }, { action: commit, value: "ĺ" }, { action: commit, value: "ľ" }] } }
+      z: { tap: "z", long_press: { display: "bubble", values: [{ action: commit, value: "z" }, { action: commit, value: "ź" }, { action: commit, value: "ž" }, { action: commit, value: "ż" }] } }
+      x: { tap: "x" }
+      c: { tap: "c", long_press: { display: "bubble", values: [{ action: commit, value: "c" }, { action: commit, value: "ç" }, { action: commit, value: "ć" }, { action: commit, value: "č" }] } }
+      v: { tap: "v" }
+      b: { tap: "b" }
+      n: { tap: "n", long_press: { display: "bubble", values: [{ action: commit, value: "n" }, { action: commit, value: "ñ" }, { action: commit, value: "ń" }] } }
+      m: { tap: "m" }
+
+      shift:
+        width: 1.5
+        tap: { action: command, value: shift_single }
+        double_tap: { action: command, value: shift_caps }
+      delete:
+        width: 1.5
+        tap: { action: delete }
+        long_press: { values: [{ action: delete, label: "删除" }] }
+        swipe_up: { action: clear_all, label: "上滑清空" }
+        swipe_down: { action: undo_clear, label: "下滑撤回" }
+        swipe_left: { action: command, value: clear_composition }
+        swipe_right: { action: command, value: clear_composition }
+      # ?123：单击固定进常用符号面板（Gboard 的 ？123 首页第一行就是 1-0）。
+      # 必须写 mode_change_common_symbol，不能写那个做模式切换的 mode_change：后者的
+      # 目标是「上次用过的面板」（SettingsPreferences.getModeChangeTargetIsNumber 会持久化），
+      # 只要长按选过一次「数字」，之后每次点 ?123 都进数字面板，观感就是功能反了。
+      # 长按两项的顺序要与 Xime 固定给的气泡图标对应：第一项恒为 t9（九宫格）图标、
+      # 第二项恒为 t26（全键盘）图标，九宫格对应数字面板，所以「数字」放第一位。
+      mode_change:
+        width: 1.5
+        tap: { label: "?123", action: command, value: mode_change_common_symbol, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "数字", action: command, value: mode_change_number }
+            - { label: "常用符号", action: command, value: mode_change_common_symbol }
+      # 逗号：上滑进表情面板（Gboard 英文键盘也是这个位置）。
+      # 英文态的手势提示取的是 value（"emoji"）而不是 label，直接把提示画在键面会印出
+      # "emoji" 五个字母，所以这里只绑动作、不显示键面提示（display: bubble + bubble: false）。
+      comma:
+        width: 1.0
+        tap: { label: ",", value: "," }
+        swipe_up: { label: "😊", action: switch_route, value: emoji, display: bubble, bubble: false }
+        long_press: { display: "bubble", values: [{ action: commit, value: "," }, { action: commit, value: "." }] }
+      earth:
+        width: 1.0
+        tap: { label: "@language", action: toggle_ascii, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "选择输入法", action: command, value: show_ime_picker }
+      space:
+        width: 4.0
+        tap: { action: space }
+        long_press: { label: "语音", action: voice, bubble: false }
+      period:
+        width: 1.0
+        tap: { label: ".", value: "." }
+        long_press:
+          display: bubble
+          values:
+            - { action: commit, value: "." }
+            - { action: commit, value: "," }
+            - { action: commit, value: "?" }
+            - { action: commit, value: "!" }
+      enter: { width: 1.5, tap: { action: enter, bubble: false } }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 九宫格拼音（T9）——Gboard 排布
+  #   左栏：候选面板（空闲时显示 ，。？！）+ 符号
+  #   主区：分词 / ABC / DEF，GHI / JKL / MNO，PQRS / TUV / WXYZ，123 空格 中英
+  #   右栏：退格 / 重输 / 换行
+  #
+  # 何时显示九键：由基座的 keyboard.t9.schemas 决定（默认 t9_pinyin / t9 /
+  # wanxiang_t9 / rime_frost_t9）。想让自己的方案也用九键，在本段追加
+  # （列表要整段写出，不能只写新增项）：
+  #   schemas: [t9_pinyin, t9, wanxiang_t9, rime_frost_t9, 你的方案id]
+  # ═════════════════════════════════════════════════════════════════════════
+  t9:
+    type: t9
+    layout:
+      left: [candidates, symbol]
+      rows:
+        - ["1", "2", "3"]
+        - ["4", "5", "6"]
+        - ["7", "8", "9"]
+        - [number, space, earth]
+      right: [delete, clear, enter]
+
+    # 左栏空闲时显示的快捷符号（Gboard 九键为 ，。？！）
+    side_symbols: ["，", "。", "？", "！"]
+
+    keys:
+      # 底行比例：Gboard 九键的 123 与地球键都比字母键窄，空格吃满剩余宽度
+      number: { width: 0.8 }
+      # 空格：点按空格、长按语音；上滑直接上屏 0（沿用基座九键的手势）
+      space:
+        width: 1.7
+        tap: { action: space }
+        long_press: { label: "语音", action: voice, bubble: false }
+        swipe_up: { action: commit, value: "0", display: "key", bubble: false }
+      # 中英切换用九键内置的地球键（只改宽度，行为与图标都沿用内置）
+      earth: { width: 0.8 }
+      # 右栏四行三键，等高铺满（内置 enter 权重是 2，这里拉平）
+      enter: { width: 1.0 }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # ？123 面板（Gboard 的两页符号合并成一页）
+  # 1-0 / @ # $ _ & - + ( ) / / * " ' : ; ! ? = % ~ / ABC ， 空格 。 换行
+  # ═════════════════════════════════════════════════════════════════════════
+  common_symbols:
+    type: full
+    layout:
+      rows:
+        - ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
+        - ["@", "#", "$", "_", "&", "-", "+", "(", ")", "/"]
+        - ["*", "\"", "'", ":", ";", "!", "?", "=", "%", "~"]
+        - [back, ",", ".", space_key, enter]
+    keys:
+      # 底行：ABC（返回字母）宽 1.5，逗号/句号各 1，空格吃满，换行 2.5
+      back: { width: 1.5, tap: { label: "ABC" } }
+      ",": { width: 1.0 }
+      ".": { width: 1.0 }
+      space_key: { width: 4.0 }
+      enter: { width: 2.5, tap: { action: send_rime, value: enter, label: "换行" } }
