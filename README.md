@@ -66,7 +66,19 @@ fcitx5 的 11 套内置主题里，`TransparentLight/Dark` 没有收录：它们
 
 ## 发布
 
-在 GitHub 发布 Release 时，[`release.yml`](.github/workflows/release.yml) 会把每个包含 YAML 的目录分别打成 `dist/<目录名>.zip` 并上传为 Release 附件，方便直接下载对应风格。
+[`release.yml`](.github/workflows/release.yml) 会把每个包含 YAML 的目录分别打成 `dist/<目录名>.zip`，再作为 Release 附件上传。两种触发，没有定时任务：
+
+| 触发 | 行为 |
+|---|---|
+| 手动运行（Actions → Run workflow） | tag 留空 = 当天日期 `YYYY.MM.DD`（如 `2026.11.07`，不带 `v` 前缀），也可以填任意 tag；同一天重复运行会覆盖同名附件 |
+| 网页上手动创建 Release | 沿用原行为：只把 zip 传上去，不改你写的标题和说明 |
+
+几点细节：
+
+- 日期固定用 `TZ=Asia/Shanghai` 生成，runner 是 UTC 也不会出现「差一天」的 tag。
+- 同一个 tag 重复跑不会 422（`overwrite_files: true`），所以手动重试、当天补发都安全。
+- Release 说明用 GitHub 自动生成的变更记录，比较基准是「上一个 release 的 tag」；手动创建的那个 release 不重新生成说明。
+- 想每次 push 也自动发，在 `on:` 下加 `push: { branches: [main] }` —— 同一天多次 push 会更新同一个日期 tag。
 
 ## 许可证
 

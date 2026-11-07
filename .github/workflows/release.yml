@@ -1,18 +1,78 @@
 name: Release YAML Configs
 
+# 两种触发方式：
+#   1) workflow_dispatch   手动运行，tag 留空就用当天日期（YYYY.MM.DD）
+#   2) release: published  在网页上手动创建 Release 时，把 zip 传上去
+# 不再有定时触发：什么时候发由你决定。
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag（留空 = 当天日期，如 2026.11.07）"
+        required: false
+        type: string
 
 permissions:
   contents: write
 
+concurrency:
+  group: release-yaml
+  cancel-in-progress: false
+
 jobs:
   package-and-upload:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # 需要 tag：要拿上一个 release 当 release notes 的比较基准
+          fetch-depth: 0
+
+      - name: Resolve tag
+        id: meta
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ inputs.tag }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+
+          # 1. 本次 tag：网页发布用它的 tag；手动运行用输入值；都为空则取当天日期
+          tag=""
+          if [ "$EVENT" = "release" ]; then
+            tag="$RELEASE_TAG"
+          fi
+          [ -n "$tag" ] || tag="$INPUT_TAG"
+          [ -n "$tag" ] || tag="$(TZ=Asia/Shanghai date +%Y.%m.%d)"
+
+          # 2. 上一个正式 release，用来自动生成变更说明
+          #    `// ""` 必需：仓库还没有 release 时 gh 会输出字面量 null
+          last=""
+          last=$(gh release list --limit 1 --exclude-drafts --exclude-pre-releases \
+                   --json tagName -q '.[0].tagName // ""' 2>/dev/null || true)
+          if [ "$last" = "null" ]; then
+            last=""
+          fi
+          # tag 被删掉 / 不在本仓库历史里时清空，否则当 previous_tag 传给 API 会 422
+          if [ -n "$last" ] && ! git rev-parse -q --verify "refs/tags/$last" >/dev/null; then
+            echo "::warning::上一个 release 的 tag $last 在本地不存在，忽略"
+            last=""
+          fi
+
+          # 同一天重复发（手动重试）时不要拿自己当比较基准
+          previous=""
+          [ "$last" = "$tag" ] || previous="$last"
+
+          echo "本次发布 tag：$tag（上一个 release：${last:-无}）"
+          {
+            echo "tag=$tag"
+            echo "previous=$previous"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Package YAML configs by directory
         shell: bash
@@ -46,8 +106,26 @@ jobs:
 
           ls -lh dist
 
-      - name: Upload archives to release
+      # 网页上手动发布：只上传附件，保留你自己写的标题 / 说明
+      - name: Upload archives to the existing release
+        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*.zip
           fail_on_unmatched_files: true
+          overwrite_files: true
+
+      # 手动运行：创建（或更新）日期 tag 的 release
+      - name: Create or update release
+        if: github.event_name != 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: ${{ steps.meta.outputs.tag }}
+          files: dist/*.zip
+          fail_on_unmatched_files: true
+          # 同一个 tag 重复跑时覆盖同名附件，不会撞 422
+          overwrite_files: true
+          # 自动按上一个 release 生成变更说明
+          generate_release_notes: true
+          previous_tag: ${{ steps.meta.outputs.previous }}
