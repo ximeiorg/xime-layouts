@@ -332,8 +332,8 @@ keyboard:
     keys:
       open_symbols: { width: 1.2 }
       delete: { width: 1.2 }
-      back: { width: 1.6, tap: { label: "返回" } }
-      emoji: { width: 1.0 }
-      number: { width: 1.0 }
-      space_key: { width: 5.0 }
-      enter: { width: 2.4, tap: { action: send_rime, value: enter, label: "换行" } }
+      back: { width: 1.45, tap: { label: "返回" } }
+      emoji: { width: 0.91 }
+      number: { width: 0.91 }
+      space_key: { width: 4.55 }
+      enter: { width: 2.18, tap: { action: send_rime, value: enter, label: "换行" } }

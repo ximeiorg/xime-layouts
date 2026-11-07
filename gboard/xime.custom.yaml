@@ -1,16 +1,23 @@
 # ═══════════════════════════════════════════════════════════════════════════
 # Gboard 风格布局（Xime / 安卓）
 #
-# 参考：Gboard 实机截图（654×529，键面 51×72、横缝 10、竖缝 19、圆角 ≈6）
-#       26 键全键盘、九宫格拼音、？123 符号面板、纯黑与渐变主题
+# 参考：Gboard 实机截图两张 ——
+#   ① 字母页（654×529，键面 51×72、横缝 10、竖缝 19、圆角 ≈6）
+#   ② 底行放大图：?123 与换行是「圆形键」、逗号键面带 😊、空格 = 5.9 个字母键宽
+# 覆盖：26 键全键盘、九宫格拼音、？123 符号面板、7 套配色
 # 基座：Xime/app/src/main/assets/xime.yaml（未写的键自动回退基座值）
 #
 # 安装：把本文件放到 Xime 用户目录 rime/xime.custom.yaml
 #       （Android/data/<包名>/files/rime/），然后在键盘设置里重新部署/重启输入法。
 #
 # 覆盖范围：
-#   · 键面几何：圆角 4dp、横缝 6.5dp、竖缝 11.5dp、无阴影
+#   · 键面几何：圆角 6dp、横缝 6.5dp、竖缝 11.5dp、无阴影
 #              （三项比例照截图换算；Gboard 是「窄高 + 大缝 + 小圆角」，只改圆角会更不像）
+#   · 按键级外观（键盘级的补充）：
+#             ?123 与换行写成圆形键 —— `corner_radius: 40`，Compose 的 RoundedCornerShape
+#             会把半径夹到「键宽/键高的一半」，所以 40 等于「能多圆就多圆」，
+#             不依赖具体键高；1.2 键宽 + 圆角 → 与 Gboard 的两个圆键同形。
+#             换行再叠主色（background: accent，随主题），见说明 4。
 #   · 主题色：全部来自 Gboard 18.5.9 自带的配色表，不是目测 ——
 #             APK 内 assets/theme/style_sheet_color_*.binarypb（protobuf 二进制），
 #             逐字段解析出 keyboard_background_primary / bordered_key / bordered_key_dark /
@@ -28,16 +35,26 @@
 #             gboard_cyan     浅蓝绿 #80DEEA 底 / #ACE9F1 键 / 深灰字
 #             Gboard 把「浅色 / 深色」摆成两个格子，是因为它的主题固定、要手动选；
 #             Xime 的同一套 scheme 自带 _dark 字段会跟随系统，所以这里合成一个主题。
-#             彩色 4 套是固定色（亮暗同款），与 Gboard 自身行为一致。
-#   · 26 键：字母键不带数字角标（Gboard 没有上滑数字）、长按出变音符号
-#            （q/f/j/x/v/b/m 这类没有变音符的字母长按仍走 Xime 内置的小写/大写气泡），
-#            底行 ?123 1.5 / ，1.0 / 地球 1.0 / 空格 4.0 / 。1.0 / 换行 1.5
-#            （Gboard 原版是 ?123 1.5 / ，1.0 / 空格 5.1 / 。1.0 / 换行 1.5，
-#              键盘上没有中英键；这里挤 1 列给地球键，空格相应收窄）
+#             彩色 5 套是固定色（亮暗同款），与 Gboard 自身行为一致。
+#   · 26 键：字母键**保留 Xime 的上滑与下滑**（不为了像 Gboard 而砍功能）：
+#              第一行 q-p 上滑 = 1-0，第二/三行上滑 = ～ ／ ： ； “ ” － 等半角标点，
+#              下滑仍是基座的五笔字根提示（action: none，只提示不输入）。
+#            Gboard 的字母键没有上滑，所以键面会因此多出角标（q 上的 1、a 上的 ～），
+#            这是刻意保留的功能，不是配置错误。长按出变音符号（这一点与 Gboard 一致）；
+#            底行 ?123 1.3（圆）· ，1.0 · 地球 1.0 · 空格 3.7 · 。1.0 · 换行 2.0（圆）
+#            合计 10 列。Gboard 原版是 ?123 1.0 / ，1.0 / 空格 5.9 / 。1.0 / 换行 1.2
+#            （键盘上没有中英键）。这里多一个地球键，空格必然比 Gboard 短；
+#            标点保持 1.0（和 Gboard 的标点键同宽），腾出来的份量从空格里扣，
+#            换行给到 2.0 —— Gboard 那种「宽主色回车主色键」的份量
 #            逗号上滑 = 表情面板（Gboard 逗号键上的表情入口）
 #   · 九键：左栏候选 + 符号，1=分词，2-9 字母，底行 123 空格 中英，
 #            右栏 退格 / 重输 / 换行（Gboard 右栏只有退格与换行，见说明 8）
-#   · ？123 面板：1-0 / @ # $ _ & - + ( ) / ，* " ' : ; ! ? = % ~，底行 ABC ， 空格 。 换行
+#   · ？123 面板：1-0 / @ # $ _ & - + ( ) / ，* " ' : ; ! ? = % ~，
+#            底行 ABC 1.3 · ，1.0 · 空格 4.7 · 。1.0 · 换行 2.0，与 26 键同一套权重，
+#            所以两个面板的标点、空格、回车实际宽度完全一致；顺序也照 Gboard 的
+#            「ABC ， 空格 。 换行」（原来写的是 ABC ， 。 空格 回车，与主键盘错位）
+#   · 数字面板：三列布局取自基座，右列四键（退格 / 空格 / 表情 / 回车）；
+#            这里只补回车外观（圆角 40 + accent），与上面两个面板统一
 #
 # 说明（Gboard 特性与 Xime 渲染层限制，不是配置漏写）：
 #   1. Gboard 顶部有一整条工具栏（G 标、翻译、麦克风、表情、设置齿轮），
@@ -47,9 +64,22 @@
 #   3. Gboard 中文把「中/英」放在工具栏左上角的「中」图标里，键盘上不占键位。
 #      Xime 没有那个图标位，所以本布局把地球键放在空格左边（Gboard 多语言时
 #      地球键也正好在这个位置），单击切中英、长按选择输入法。
-#   4. Gboard 的键分三档色：字母键、功能键（Shift/退格）、强调键（?123/换行，薄荷底）。
-#      Xime 只有「普通键 / 功能键」两档，所以 ?123 和换行只能跟 Shift 同色；
-#      想让它们变薄荷底，只能等渲染层加第三档键色。强调色仍用在候选栏图标上。
+#   4. Gboard 的键分三档色：字母键、功能键（Shift/退格）、强调键（?123 淡强调、换行亮强调）。
+#      换行键已经按这个做了：「主色 + 圆形」，写的是主题色记号
+#        `background: accent`（= 主题强调色 primary_color），切主题自动跟着变：
+#        gboard 薄荷 #4DB6AC · gboard_google 蓝 #1A73E8 · blue #2196F3 · red #F44336
+#        green #2D7D32 · teal #4DB6AC · cyan #00ACC1。
+#      不用写 background_dark —— `accent` 在暗色下自动取 accentDark（KeyboardTheme
+#      由 primary_color 提亮得到），正好就是截图里那颗亮薄荷。
+#      字色也不用配：渲染层按背景亮度自动取（深底浅字 / 浅底深字），
+#      KeyStyle.kt 的 contrastTextColor 负责这一步。
+#      ?123 那档「淡强调」（截图 #B5CCBC）没做：它比换行淡得多，而且它本来就是
+#      功能键，跟随主题的 specialKeyBgColor 已经合适。
+#      可选记号（写在任意按键的 background 上）：accent / primary（强调色）、
+#      special（功能键色）、key（字母键色）、keyboard（键盘底色）。
+#      三处回车写法完全一致（26 键 / ？123 面板 / 数字面板），都是
+#      `corner_radius: 40` + `background: accent`；面板里的回车同样是功能键，
+#      走 FunctionKeyCell → keyStyleOverride，所以按键级外观在面板上一样生效。
 #   5. Gboard 的「按键边框（Key borders）」Xime 没有对应开关；Gboard 默认关边框，
 #      所以这里也关掉阴影，靠键色与底色的亮度差、以及大缝来分区。
 #   6. Gboard 有两页符号面板（?123 与 =\<），Xime 只有一个 common_symbols，
@@ -62,8 +92,8 @@
 #      两键会各占一半显得过高，所以保留 Xime 的「重输」做三键。不想要删掉 clear 即可。
 #   9. 平板（smallestWidth ≥ 600dp）会自动套用 Xime 内置的 qwerty_tablet 等分段，
 #      那套排布本身就是照 Gboard 平板做的（Tab / caps / 左右光标），本文件只覆盖手机布局。
-#  10. 默认主题的暗色是截图逐点取色（底/键/功能键/字），亮色按 Gboard 亮色的同结构换算；
-#      渐变皮肤的端点色取自 Gboard 渐变主题截图，键面用半透明白让底色透上来。
+#  10. 深色主题是截图逐点取色（底/键/功能键/字）；浅色与 Google 深色按 Gboard 亮色的
+#      同结构换算，再用配色表里的原值核对。
 #  11. Gboard 在 Android 12+ 会跟随壁纸取色（Material You），截图里的薄荷就是壁纸来的。
 #      想完全跟随壁纸，把 style.color_scheme.light/dark 改成内置的 dynamic 即可。
 #  12. Gboard 的滑行输入、单手模式、浮动键盘都是输入法内部行为，配置层管不到。
@@ -79,17 +109,44 @@
 #      长按选过一次「数字」后，之后每次点 ?123 都会进数字面板 —— 这就是「功能反了」。
 #      长按气泡的两项顺序也照 Xime 固定的图标来排：第一项恒为 t9 九宫格图标、第二项恒为
 #      t26 全键盘图标，所以数字面板放第一位、常用符号放第二位。
-#  15. 符号面板与数字面板都是 10 列、键面尺寸和字母键相同，圆角/缝应当与字母键一致，
-#      所以这里不写 number / symbol 覆盖，直接继承 key 段的 4 / 3.25 / 5.75。
+#  15. 符号面板与数字面板都是 10 列、键面尺寸和字母键相同，圆角/缝要与字母键一致 ——
+#      但「数值相同」不等于「继承」，所以 key 段里 number / symbol 两行是**必须写**的：
+#      基座 xime.yaml 给这两个键盘单独调过缝（number 2/2、symbol 2/4），
+#      KeysConfigHelper.spacingFor(keyboard) 的取值是
+#        spacingOverrides[键盘].spacingX ?: 全局 spacingX
+#      键盘名一旦命中覆盖，全局值就被彻底忽略。只写全局 3/5.75 时：
+#        26 键  → qwerty 无覆盖 → 3 / 5.75
+#        ?123   → symbol 命中基座 → 2 / 4     ← 面板看起来「挤」
+#        数字面板 → number 命中基座 → 2 / 2   ← 更挤
+#      圆角没这个问题，是因为基座那两条覆盖里只有 spacing，没有 corner_radius，
+#      所以圆角一路回落到全局 6，只有缝对不上 —— 这就是「圆角对、缝不对」的成因。
 #      坑：Key 段的键名不等于面板段名 —— 通用符号面板的段名是 common_symbols，
-#      但 KeyboardView 取圆角时传的是 "symbol"（见 KV.kt:1206），所以以前写的
-#      `symbol: { corner_radius: 8 }` 正好把 ？123 面板撑成 8dp，比字母键圆一倍。
-#      要单独调这一页，改的是 `key.symbol`；`key.common_symbols` 不会生效。
+#      但渲染层取圆角和缝时传的是 "symbol"（KV.kt:1206 / KeyboardLayoutScreen.kt:234-236），
+#      所以以前写的 `symbol: { corner_radius: 8 }` 正好把 ？123 面板撑成 8dp。
+#      结论：这一页要调就调 `key.symbol`；`key.common_symbols` 不会生效。
+#      平板不受影响：*_tablet 那几条覆盖仍是基座的 4/6。
+#  16. 按键级外观（`keys.<id>.corner_radius / background / background_dark`）需要
+#      Xime ≥ abda05a（支持按键级外观那次提交）。只写外观字段时会保留该键原有的
+#      点按/长按/滑动配置（mergeKeyBinding 的 style-only 分支），所以本文件里这两个
+#      圆键是把 corner_radius 和 tap 写在一起的，旧版本 Xime 会忽略未知字段、
+#      退化成普通方键，不会报错。
+#      九键（T9）、笔画、手写键盘目前不吃按键级外观，所以那里只改宽度。
+#  17. 回车「换行↵」为什么带个箭头 / 为什么是 3 个字符：Xime 没有按键级字号配置，
+#      字号由「文案长度」间接决定 —— KeyButton.kt:950 的兜底是
+#        text.length > 2 ? 14f : 18f   （再乘 adaptiveKeyContentScale）
+#      而 ?123 面板的功能键走 PanelKeyboardLayout.kt:157 写死的 ctrlFontSize = 14.sp。
+#      于是 2 字符的「换行」在主键盘 18sp、切到面板变 14sp，肉眼就是「缩了」。
+#      写成 3 字符后两边都落 14sp：26 键回车 / ?123 回车 / ?123 键（4 字符）/ 空格
+#      全部同一档，面板来回切不见跳变。
+#      代价要清楚：显式 label 会盖掉 Xime 随场景自动给的文案（发送 / 搜索 / 完成）。
+#      想恢复自动文案，就把 label 删掉，同时接受主键盘回车回到 18sp
+#      （面板仍是 14sp —— 那是代码写死的，配置层无解；`style.font_size` 是死字段，
+#       app/src/main 里没有任何代码读它）。
 # ═══════════════════════════════════════════════════════════════════════════
 
 metadata:
   app_name: Xime
-  app_version: ">=3.0.0"
+  app_version: ">=3.5.0"
   platform: android
   config_version: 1
   generator: "Xime Config Generator" # 暂时无用
@@ -292,12 +349,20 @@ keyboard:
   #   · 竖缝 / 键高 = 19 / 72 ≈ 0.264 → 44dp 键高时缝约 11.6dp
   # Gboard 的键是「窄高 + 大缝 + 小圆角」，这三项一起才像，单改圆角会更不像
   key:
-    corner_radius: 4
-    spacing_x: 3.25      # 实际横缝 ≈6.5dp
+    corner_radius: 6
+    spacing_x: 3      # 实际横缝 ≈6.5dp
     spacing_y: 5.75      # 实际竖缝 ≈11.5dp，Gboard 行距明显比列距大
-    # 只有九键的键明显更大（3 列），圆角同比放大；符号面板与数字面板都是
-    # 10 列、键面尺寸与字母键一致，所以不单独覆盖，直接继承上面的 4 / 3.25 / 5.75
+    # 只有九键的键明显更大（3 列），圆角同比放大
     t9: { corner_radius: 10, spacing_x: 4, spacing_y: 4 }
+    # ⚠ 面板这两行不能省，哪怕数值和上面完全一样：
+    #   基座 xime.yaml 的 key 段给 number / symbol 单独调过缝（number 2/2、symbol 2/4），
+    #   而 KeysConfigHelper.spacingFor() 是「键盘覆盖优先于全局值」——
+    #   只写全局 spacing_x/spacing_y 时，26 键用 3/5.75，?123 面板却退回 2/4，
+    #   于是圆角一致、缝不一致（这正是「面板比字母键挤」的原因）。
+    #   面板段名和键名不同：常用符号面板查的是 symbol，数字面板查的是 number
+    #   （见 KeyboardLayoutScreen.kt 的 spacingFor("symbol") / spacingFor("number")）。
+    number: { spacing_x: 3, spacing_y: 5.75 }
+    symbol: { spacing_x: 3, spacing_y: 5.75 }
 
   # Gboard 的键是纯色块：没有投影，也没有按键边框（Key borders 在 Xime 里画不出来）。
   # 所以这里关掉阴影，靠「键色与底色的亮度差 + 大缝」区分按键，和 Gboard 一致。
@@ -307,7 +372,10 @@ keyboard:
 
   # ═════════════════════════════════════════════════════════════════════════
   # 26 键全键盘（中文）——Gboard 排布
-  # 字母键没有数字角标（Gboard 无上滑数字），长按只出变音符号，大小写交给 Shift
+  # 字母键只写 tap + long_press，不写 swipe_up —— 让上滑/下滑完全继承基座：
+  #   q-p 上滑 1-0、a-l 上滑 ～／：；“”－、z-m 上滑剩余标点，下滑是五笔字根提示。
+  # 键面上的数字/符号角标由此而来，是刻意保留的 Xime 手感（用户明确要求「上滑不能掉」）。
+  # 长按只出变音符号，大小写交给 Shift
   # ═════════════════════════════════════════════════════════════════════════
   qwerty:
     button_layout: standard
@@ -352,8 +420,10 @@ keyboard:
       m: { tap: "m" }
 
       # ── 功能键 ──
-      # 底行按 Gboard 观感（以字母键为 1，合计正好 10 列，与 Q 行格子对齐）：
-      #   ?123 1.5 ：，1.0 ：地球 1.0 ：空格 4.0 ：。1.0 ：换行 1.5
+      # 底行按底行放大图（以字母键为 1，合计正好 10 列，与 Q 行格子对齐）：
+      #   ?123 1.3（圆）· ，1.0 · 地球 1.0 · 空格 3.7 · 。1.0 · 换行 2.0（圆）
+      # Gboard 的 ?123 与换行是圆形键，见各键上的 corner_radius: 40；
+      # 换行再叠一层主色（background: accent，随主题），见文件头说明 4
       # Shift / 退格在 Gboard 里约等于 1.5 个字母键
       # 功能键的行为要一并写出：xime.custom.yaml 的 keys 是「同名键整体覆盖」，
       # 只写 width 会把基座里的 shift/退格/空格手势一起丢掉
@@ -370,7 +440,6 @@ keyboard:
         swipe_left: { action: command, value: clear_composition }
         swipe_right: { action: command, value: clear_composition }
 
-      # ?123：单击进常用符号面板（Gboard 的 ？123 首页就带 1-0），长按可选数字面板
       # ?123：单击固定进常用符号面板（Gboard 的 ？123 首页第一行就是 1-0）。
       # 必须写 mode_change_common_symbol，不能写那个做模式切换的 mode_change：后者的
       # 目标是「上次用过的面板」（SettingsPreferences.getModeChangeTargetIsNumber 会持久化），
@@ -379,6 +448,7 @@ keyboard:
       # 第二项恒为 t26（全键盘）图标，九宫格对应数字面板，所以「数字」放第一位。
       mode_change:
         width: 1.5
+        corner_radius: 40   # 夹到键高一半 → 圆形（Gboard 的 ?123 就是圆键）
         tap: { label: "?123", action: command, value: mode_change_common_symbol, bubble: false }
         long_press:
           display: bubble
@@ -406,7 +476,7 @@ keyboard:
 
       # 空格：Gboard 的空格很宽；点按空格、长按语音
       space:
-        width: 4.0
+        width: 3.7
         tap: { action: space }
         long_press: { label: "语音", action: voice, bubble: false }
 
@@ -422,8 +492,24 @@ keyboard:
             - { action: commit, value: "？" }
             - { action: commit, value: "！" }
 
-      # 换行：保留 Xime 的自动文案（普通文本框显示“换行”，发送场景显示“发送”）
-      enter: { width: 1.5, tap: { action: enter, bubble: false } }
+      # 换行：Gboard 的换行键是「主色 + 圆形」——这是 Gboard 最显眼的一处特色。
+      # tap 用 action: enter。文案故意写成 3 个字符「换行↵」，不是为了好看，是为了字号：
+      #   KeyboardLayout.kt:931 → EnterCell(..., keyEnv.ctrlFontSize)，主键盘 ctrlFontSize
+      #   是 null → KeyButton.kt:950 兜底 =「text.length > 2 ? 14f : 18f」。
+      #   而 ?123 面板（PanelKeyboardLayout.kt:157）把 ctrlFontSize 写死 14.sp，
+      #   所以 2 字符的「换行」在主键盘是 18sp、到面板却成 14sp，落差 1.29 倍。
+      #   写成 3 字符后两边都落 14sp，字号完全一致，?123 / 空格 / 回车三键也齐了
+      #   （「?123」本来就是 4 字符走 14sp）。
+      #   代价：显式 label 会盖掉 Xime 随场景自动给的文案（发送 / 搜索 / 完成）。
+      #   想换回自动文案就得接受 18sp —— 配置层没有字号字段（style.font_size 是死字段）。
+      # background: accent = 主题强调色记号，不是固定色：切到蓝主题就是蓝键、红主题就是红键，
+      # 亮暗切换也自动换（暗色取 accentDark，即 primary_color 的提亮版，正好对上
+      # 实机截图那颗亮薄荷）。字色由渲染层按背景亮度自动取，这里不用管 key_text_color。
+      enter:
+        width: 2.0
+        corner_radius: 40
+        background: accent
+        tap: { action: enter, label: "换行", bubble: false }
 
   # ═════════════════════════════════════════════════════════════════════════
   # 26 键全键盘（英文）——排布与中文一致，标点用半角
@@ -484,7 +570,8 @@ keyboard:
       # 长按两项的顺序要与 Xime 固定给的气泡图标对应：第一项恒为 t9（九宫格）图标、
       # 第二项恒为 t26（全键盘）图标，九宫格对应数字面板，所以「数字」放第一位。
       mode_change:
-        width: 1.5
+        width: 1.3
+        corner_radius: 40   # 夹到键高一半 → 圆形（Gboard 的 ?123 就是圆键）
         tap: { label: "?123", action: command, value: mode_change_common_symbol, bubble: false }
         long_press:
           display: bubble
@@ -507,7 +594,7 @@ keyboard:
           values:
             - { label: "选择输入法", action: command, value: show_ime_picker }
       space:
-        width: 4.0
+        width: 3.7
         tap: { action: space }
         long_press: { label: "语音", action: voice, bubble: false }
       period:
@@ -520,7 +607,12 @@ keyboard:
             - { action: commit, value: "," }
             - { action: commit, value: "?" }
             - { action: commit, value: "!" }
-      enter: { width: 1.5, tap: { action: enter, bubble: false } }
+      # 换行：与中文键盘一致（主色 + 圆形），颜色/字号理由见上面 qwerty 段。
+      enter:
+        width: 2.0
+        corner_radius: 40
+        background: accent
+        tap: { action: enter, label: "换行↵", bubble: false }
 
   # ═════════════════════════════════════════════════════════════════════════
   # 九宫格拼音（T9）——Gboard 排布
@@ -572,11 +664,31 @@ keyboard:
         - ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
         - ["@", "#", "$", "_", "&", "-", "+", "(", ")", "/"]
         - ["*", "\"", "'", ":", ";", "!", "?", "=", "%", "~"]
-        - [back, ",", ".", space_key, enter]
+        # 底行顺序照 Gboard 的 ？123 面板：ABC ， 空格 。 换行
+        - [back, ",", space_key, ".", enter]
     keys:
-      # 底行：ABC（返回字母）宽 1.5，逗号/句号各 1，空格吃满，换行 2.5
-      back: { width: 1.5, tap: { label: "ABC" } }
+      # 底行权重与 26 键完全同一套，两个面板的标点、空格、回车宽度因此一致：
+      #   ABC 1.3 · ，1.0 · 空格 4.7 · 。1.0 · 回车 2.0（合计 10 列）
+      # 26 键多的那个地球键（1.0）在这里并入空格，所以空格是 3.7 + 1.0。
+      back: { width: 1.3, tap: { label: "ABC" } }
       ",": { width: 1.0 }
+      space_key: { width: 4.7 }
       ".": { width: 1.0 }
-      space_key: { width: 4.0 }
-      enter: { width: 2.5, tap: { action: send_rime, value: enter, label: "换行" } }
+      # 回车与 26 键同款：圆形 + 主题强调色 + 同一句文案「换行↵」。
+      # 面板这里字号本来就是 14sp（PanelKeyboardLayout.kt:157 写死的 ctrlFontSize），
+      # 文案与 26 键对齐，切面板时键面不会既有大小差又有字数差。
+      enter:
+        width: 2.0
+        corner_radius: 40
+        background: accent
+        tap: { action: send_rime, value: enter, label: "换行↵" }
+
+  # ── 数字面板：只统一外观，不改布局 ──
+  # 三列模式的右列固定四键（delete / 空格 / 表情 / 回车），每键等分列高、
+  # 宽度由列宽决定，所以这里不可能像 26 键那样调权重，只能把「圆形 + 主题强调色」补齐。
+  # 只写外观字段时 mergeKeyBinding 走 style-only 分支，基座的 tap（send_rime enter）保留。
+  number:
+    keys:
+      enter:
+        corner_radius: 40
+        background: accent

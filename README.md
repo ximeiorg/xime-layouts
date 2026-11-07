@@ -12,7 +12,7 @@
 |---|---|---|---|
 | [`wetype/xime.custom.yaml`](wetype/xime.custom.yaml) | 微信输入法 | 26 键、九键、数字面板、通用符号；亮/暗双套配色 | 微信绿 `#07C160` |
 | [`sougou/xime.custom.yaml`](sougou/xime.custom.yaml) | 搜狗输入法 | 26 键、九键、数字面板、通用符号；亮色按截图实测 | 搜狗蓝 `#4C8DFF` |
-| [`gboard/xime.custom.yaml`](gboard/xime.custom.yaml) | Gboard | 26 键、九键、？123 面板；几何按实机截图换算（圆角 4dp / 横缝 6.5dp / 竖缝 11.5dp、无阴影）；7 套 Gboard 主题（色值取自 APK 配色表） | 薄荷绿 `#4DB6AC` |
+| [`gboard/xime.custom.yaml`](gboard/xime.custom.yaml) | Gboard | 26 键、九键、？123 面板；几何按实机截图换算（圆角 6dp / 横缝 6.5dp / 竖缝 11.5dp、无阴影）；按键级外观把 `?123` 与换行做成圆键、换行用 `background: accent` 跟随主题强调色、字母键保留 Xime 的上滑/下滑；7 套 Gboard 主题（色值取自 APK 配色表） | 薄荷绿 `#4DB6AC` |
 | [`fcitx5/xime.custom.yaml`](fcitx5/xime.custom.yaml) | Fcitx5 for Android | 26 键（alt = 1-0 / `@*+-=/ #()` / `':"?!~\`）、5 列数字小键盘；圆角 4dp / 横缝 6dp / 竖缝 14dp、无阴影；6 套主题（来自 0.1.3 的 ThemePreset.kt） | Pixel 蓝 `#4285F4` |
 | [`comma_period/xime.custom.yaml`](comma_period/xime.custom.yaml) | 逗号 / 句号分列 | 26 键；控制行改为 `?123 ， 空格 。 地球 回车`，逗号在空格左、句号在空格右（中英各一套） | 内置主题 |
 | [`number_rows/xime.custom.yaml`](number_rows/xime.custom.yaml) | 顶部数字行 | 26 键；5 行布局，最上面多一行 1-0，点按上屏、长按出符号 | 内置主题 |
@@ -40,6 +40,21 @@ Gboard 18.5.9 APK 内的 `assets/theme/style_sheet_color_*.binarypb`（protobuf 
 Gboard 把「浅色 / 深色」摆成两个格子，是因为它的主题是固定色、要用户手动选；Xime 的同一套
 scheme 自带 `_dark` 字段、会跟随系统切换，所以这里把两对合并成一个主题。彩色 5 套是固定色，
 亮暗同款，与 Gboard 自身行为一致。默认主题就是 `gboard`（跟随系统）。
+
+### Gboard 布局实机截图
+
+（真机 1080×2412，主题 `gboard_google`；截图里的浮动小圆钮是 Xime 自带工具条，不是本布局的元素）
+
+<table>
+  <tr>
+    <td align="center"><img src="gboard/images/0.jpg" width="240"><br><sub>26 键（中文，五笔拼音）</sub></td>
+    <td align="center"><img src="gboard/images/1.jpg" width="240"><br><sub>？123 符号面板</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="gboard/images/2.jpg" width="240"><br><sub>数字面板</sub></td>
+    <td align="center"><img src="gboard/images/3.jpg" width="240"><br><sub>26 键（英文）</sub></td>
+  </tr>
+</table>
 
 fcitx5 那份同样带一套主题库。色值来自 fcitx5-android **0.1.3（versionCode 114）** 源码
 `data/theme/ThemePreset.kt` 里的 `Theme.Builtin` 常量 —— 这些颜色写在 Kotlin 代码里、

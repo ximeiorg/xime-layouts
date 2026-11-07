@@ -34,8 +34,10 @@
 # 说明（fcitx5 特性与 Xime 渲染层的差异，不是配置漏写）：
 #   1. 回车键：fcitx5 画的是一个**圆形**强调色按钮 —— KeyView.onSizeChanged 里对
 #      button_return 用 insetOvalDrawable(accentKeyBackgroundColor)，直径 min(w,h,35dp)。
-#      Xime 的键只有圆角矩形，而且键色只有「普通 / 功能」两档，没有 accent 档，
-#      所以回车只能和 Shift、退格同色。强调色仍用在候选栏图标与选中候选上。
+#      现在用按键级外观复刻了：`corner_radius: 40` + `background: accent`
+#      （40 会被 Compose 夹到键宽/键高的一半，即「能多圆就多圆」；accent 随主题自动变）。
+#      仍有细微差别：fcitx5 的圆是固定 35dp 的**正圆**并居中于键位，Xime 是圆角矩形，
+#      回车键 1.5 权重时呈胶囊而非正圆。
 #   2. 空格条：fcitx5 的 spaceBarColor 是一条**内缩的矮条**（圆角 3dp、左右各缩 10dp、
 #      上下最多缩 16dp），颜色与字母键不同；Xime 的空格就是普通键，既不能单独着色也不能内缩。
 #   3. alt 符号位置：fcitx5 默认把 alt 符号画在键面**下方**（PunctuationPosition.Bottom，
@@ -92,7 +94,8 @@ color_schemes:
   #   candidateTextColor       → candidate_text_color(_dark)
   #   genericActiveBackground  → candidate_selected_bg_color
   #   genericActiveForeground  → candidate_selected_text_color
-  #   accentKeyBackgroundColor → primary_color（回车圆形按钮的底色；Xime 里用于候选栏强调）
+  #   accentKeyBackgroundColor → primary_color（回车圆形按钮的底色；Xime 里既是候选栏强调色，
+  #                              也被 keys.enter 的 `background: accent` 直接取用）
   # ─────────────────────────────────────────────────────────────────────────
 
   # Pixel 浅色 / 深色 —— PixelLight + PixelDark
@@ -398,8 +401,14 @@ keyboard:
             - { action: commit, value: "？" }
             - { action: commit, value: "！" }
 
-      # 回车：fcitx5 是圆形强调色按钮，Xime 只能圆角矩形 + 功能键色（说明 1）
-      enter: { width: 1.5, tap: { action: enter, bubble: false } }
+      # 回车：fcitx5 是「圆形 + accentKeyBackground」按钮，用按键级外观复刻
+      # （corner_radius 40 会被夹到键宽/键高的一半，即能多圆就多圆）
+      enter:
+        width: 1.5
+        corner_radius: 40
+        background: accent
+        tap: { action: enter, bubble: false }
+
 
   # ═════════════════════════════════════════════════════════════════════════
   # 26 键全键盘（英文）——键位与中文一致，标点用半角
@@ -493,7 +502,12 @@ keyboard:
             - { action: commit, value: "," }
             - { action: commit, value: "?" }
             - { action: commit, value: "!" }
-      enter: { width: 1.5, tap: { action: enter, bubble: false } }
+      enter:
+        width: 1.5
+        corner_radius: 40
+        background: accent
+        tap: { action: enter, bubble: false }
+
 
   # ═════════════════════════════════════════════════════════════════════════
   # 数字键盘（fcitx5 NumberKeyboard）——5 列小键盘
@@ -536,4 +550,10 @@ keyboard:
       ".": { width: 1.0 }
       space_key: { width: 1.5 }
       delete: { width: 1.5 }
-      enter: { width: 1.5, tap: { action: send_rime, value: enter, label: "换行" } }
+      # 回车：与 26 键同款（圆形 + 主题强调色）
+      enter:
+        width: 1.5
+        corner_radius: 40
+        background: accent
+        tap: { action: send_rime, value: enter, label: "换行" }
+
