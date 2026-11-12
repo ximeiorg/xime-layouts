@@ -681,7 +681,7 @@ keyboard:
         width: 2.0
         corner_radius: 40
         background: accent
-        tap: { action: send_rime, value: enter, label: "换行↵" }
+        tap: { action: send_rime, value: enter, label: "换行" }
 
   # ── 数字面板：只统一外观，不改布局 ──
   # 三列模式的右列固定四键（delete / 空格 / 表情 / 回车），每键等分列高、

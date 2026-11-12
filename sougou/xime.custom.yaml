@@ -8,10 +8,12 @@
 #       （Android/data/<包名>/files/rime/），然后在键盘设置里重新部署/重启输入法。
 #
 # 覆盖范围：
-#   · 主题色：亮色 = 浅灰蓝底 #F2F3F7 + 纯白键 + #C6C9D4 功能键 + 纯黑字（截图实测）
+#   · 主题色：两套（与搜狗「默认布局 / 默认布局（蓝）」一一对应）
+#             默认布局 = 浅灰底 #F2F3F7 + 纯白键 + #CACBD6 功能键 + 搜狗橙 #FB6D12
+#             默认布局（蓝）= 同一套中性色，强调色换成 #007AFD
 #             暗色 = #1C1C1E 底 + #363638 键 + #262628 功能键（暂按搜狗深色估的）
 #   · 26 键：Q 行嵌 1-0 提示、A 行 ~ ! @ # % “ ” * ?、
-#            Z 行 ( ) - ~ : ; /，底行 符 123 ， 空格 。 中英 换行
+#            Z 行 ( ) - ~ : ; /，底行 符 123 ， 空格 。 中英 发送（发送=强调色）
 #   · 九键：左栏候选 + ，。？！，主区 分词/ABC… + 123 空格 中英，
 #            右栏 退格 / 重输 / 0 / 换行
 #   · 数字面板：左键柱 % / - +，1-9、返回 0 空格，右栏 退格 . @ 换行
@@ -23,15 +25,22 @@
 #      搜狗空格上的麦克风图标无法复刻；长按空格 = 语音，行为保留。
 #   2. 键色只有“普通键 / 功能键”两组：数字面板右栏的 . @、九键的 0 在搜狗里是
 #      灰键，Xime 只能按普通键画成白键。
-#   3. 数字面板左键柱（% / - +）由 Xime 用普通键底色绘制，无法像搜狗那样整柱灰底；
-#      「符」键沿用 Xime 内置文案，键面显示为「符号」而不是单字「符」。
+#   3. 数字面板左键柱（% / - +）由 Xime 用普通键底色绘制，无法像搜狗那样整柱灰底。
+#   3b. 26 键底行的「符 / 123」不能用内置 open_symbols / number 键位：
+#       · open_symbols 在主键盘发 "symbol" → 只会打开 Xime 自带的符号覆盖页（SymbolKeyboardLayout），
+#         不是本文件的 keyboard.common_symbols 布局；
+#       · number 发的 "number" 在 KeyboardView.fullScreenOnKeyPress 里没有分支，会落到 else，
+#         点击等于没反应。
+#       所以这两个键改成本文件的 fu（自定义键 + background: special）与 mode_change，
+#       用 command: mode_change_common_symbol / mode_change_number 分发。
 #   4. 九键没有内置的 “0” 键：这里用自定义键 zero 直接上屏 “0”。搜狗里 0 是九键
 #      分隔语义，行为略有差异；不想要删掉 right 里的 zero 即可。
 #   5. 九键“中英”在 Xime 里固定是地球图标，无法显示搜狗的两行“中/英”；
 #      26 键“中英”同样按你之前的偏好用地球图标，想要文字键面可改成
 #      earth: { tap: { label: "中英", action: toggle_ascii, bubble: false }, ... }
 #   6. 平板会自动套用 Xime 内置的 qwerty_tablet 等分段，本文件只覆盖手机布局。
-#   7. 强调色（搜狗蓝 0x4C8DFF）与整套深色配色是估的，拿到深色截图后再校准；
+#   7. 两套主题的强调色取自「默认布局 / 默认布局（蓝）」截图：橙 0xFB6D12、蓝 0x007AFD。
+#      发送键用 background: accent 跟随主题；暗色配色仍是估的，拿到深色截图后再校准。
 #      选中候选底用 candidate_selected_bg_color / _dark（0xAARRGGBB，自带透明度）。
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -50,10 +59,10 @@ style:
   dark_mode: 2 # 0=浅色 1=深色 2=跟随系统
 
 color_schemes:
+  # ── 默认布局（搜狗橙）：发送键 / 候选强调色都是 #FB6D12 ──
   sogou:
     name: "搜狗主题"
-    # 搜狗蓝：候选栏强调色（返回/剪贴板/展开图标、九键选中音节等）
-    primary_color: 0x4C8DFF
+    primary_color: 0xFB6D12
 
     # 搜狗键盘底是纯色浅灰蓝，没有渐变
     keyboard_background:
@@ -65,8 +74,8 @@ color_schemes:
     key_bg_color: 0xFFFFFF
     key_bg_color_dark: 0x363638
 
-    # 搜狗功能键比普通键暗一档：#C6C9D4（截图实测）
-    special_key_bg_color: 0xC6C9D4
+    # 搜狗功能键比普通键暗一档（截图实测 #CACBD6）
+    special_key_bg_color: 0xCACBD6
     special_key_bg_color_dark: 0x262628
 
     candidate_bar_bg_color: 0xF2F3F7
@@ -79,16 +88,48 @@ color_schemes:
     key_text_color_dark: 0xF2F2F2
     candidate_text_color: 0x1A1A1A
     candidate_text_color_dark: 0xE8E8E8
-    # 选中候选：搜狗蓝 10% 透明底 + 蓝字
-    candidate_selected_bg_color: 0x1A4C8DFF
-    candidate_selected_bg_color_dark: 0x1A4C8DFF
-    candidate_selected_text_color: 0x4C8DFF
-    candidate_selected_text_color_dark: 0x7FB2FF
+    # 选中候选：橙 10% 透明底 + 橙字
+    candidate_selected_bg_color: 0x1AFB6D12
+    candidate_selected_bg_color_dark: 0x1AFB6D12
+    candidate_selected_text_color: 0xE85D06
+    candidate_selected_text_color_dark: 0xFF9550
+
+  # ── 默认布局（蓝）：中性色完全同上，只换强调色 #007AFD ──
+  sogou_blue:
+    name: "搜狗主题（蓝）"
+    primary_color: 0x007AFD
+
+    keyboard_background:
+      type: solid
+      color: 0xF2F3F7
+      color_dark: 0x1C1C1E
+    keyboard_bg_color: 0xF2F3F7
+
+    key_bg_color: 0xFFFFFF
+    key_bg_color_dark: 0x363638
+
+    special_key_bg_color: 0xCACBD6
+    special_key_bg_color_dark: 0x262628
+
+    candidate_bar_bg_color: 0xF2F3F7
+    candidate_bar_background:
+      type: solid
+      color: 0xF2F3F7
+      color_dark: 0x1C1C1E
+
+    key_text_color: 0x000000
+    key_text_color_dark: 0xF2F2F2
+    candidate_text_color: 0x1A1A1A
+    candidate_text_color_dark: 0xE8E8E8
+    candidate_selected_bg_color: 0x1A007AFD
+    candidate_selected_bg_color_dark: 0x1A007AFD
+    candidate_selected_text_color: 0x0069DB
+    candidate_selected_text_color_dark: 0x6FB6FF
 
 keyboard:
   # ── 键面圆角 / 间距 ──
   key:
-    corner_radius: 8      # 搜狗圆角比微信大（≈8dp）
+    corner_radius: 4
     # 键间距按「左右各留 spacing_x」计算，实际缝宽 = 2 * spacing
     spacing_x: 3.5        # 横向缝 ≈10px（截图实测）
     spacing_y: 5.5        # 纵向缝 ≈17px
@@ -101,7 +142,7 @@ keyboard:
   shadow:
     enabled: true
     elevation: 0.5
-    shape_radius: 8
+    shape_radius: 4
 
   # ═════════════════════════════════════════════════════════════════════════
   # 26 键全键盘（中文）
@@ -114,7 +155,7 @@ keyboard:
         - [q, w, e, r, t, y, u, i, o, p]
         - [a, s, d, f, g, h, j, k, l]
         - [shift, z, x, c, v, b, n, m, delete]
-        - [open_symbols, number, comma, space, period, earth, enter]
+        - [fu, mode_change, comma, space, period, earth, enter]
     keys:
       # ── 第一行：上滑 1-0（键面右上角提示）──
       q: { tap: "q", swipe_up: "1", long_press: { display: "bubble", values: ["q", "Q"] } }
@@ -154,8 +195,25 @@ keyboard:
       shift: { width: 1.5 }   # 单击/双击大写；行为沿用内置
       delete: { width: 1.5 }  # 退格；长按连删、上滑清空等沿用内置
 
-      open_symbols: { width: 1.52 } # 符：键面“符”，点按进通用符号面板
-      number: { width: 1.24 }       # 123：键面“123”，点按进数字面板
+      # 符：自定义键 + 功能键底色（background: special），点按进本文件的常用符号面板。
+      # 不能用内置 open_symbols：它在主键盘上发的是 "symbol"，只会打开 Xime 自带的符号覆盖页，
+      # 不是 keyboard.common_symbols 这套布局。
+      fu:
+        width: 1.52
+        background: special
+        tap: { label: "符", action: command, value: mode_change_common_symbol, bubble: false }
+
+      # 123：必须挂在 mode_change 键位上。内置 number 键在主键盘发的是 "number"，
+      # 而 KeyboardView.fullScreenOnKeyPress 里没有 "number" 分支（只有 mode_change_number），
+      # 会落到 else 当成普通字符，点了没反应——这就是之前「进不去数字键盘」的原因。
+      mode_change:
+        width: 1.24
+        tap: { label: "123", action: command, value: mode_change_number, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "数字", action: command, value: mode_change_number }
+            - { label: "常用符号", action: command, value: mode_change_common_symbol }
 
       # 逗号：键面“，”，上滑“。”
       comma:
@@ -187,8 +245,9 @@ keyboard:
           values:
             - { label: "选择输入法", action: command, value: show_ime_picker }
 
-      # 换行：保留 Xime 的自动文案（普通文本框显示“换行”，发送场景显示“发送”）
-      enter: { width: 1.5 }
+      # 发送：搜狗这里是整颗强调色实心键（默认布局=橙 #FB6D12，蓝色布局=#007AFD）。
+      # background: accent 跟主题强调色走，文案仍由 Xime 按场景自动给（发送/换行/搜索）。
+      enter: { width: 1.5, background: accent }
 
   # ═════════════════════════════════════════════════════════════════════════
   # 26 键全键盘（英文）——排布与中文一致，标点用半角，沿用英文输入语义
@@ -201,7 +260,7 @@ keyboard:
         - [q, w, e, r, t, y, u, i, o, p]
         - [a, s, d, f, g, h, j, k, l]
         - [shift, z, x, c, v, b, n, m, delete]
-        - [open_symbols, number, comma, space, period, earth, enter]
+        - [fu, mode_change, comma, space, period, earth, enter]
     keys:
       q: { tap: "q", swipe_up: "1", long_press: { display: "bubble", values: ["q", "Q"] } }
       w: { tap: "w", swipe_up: "2", long_press: { display: "bubble", values: ["w", "W"] } }
@@ -232,8 +291,18 @@ keyboard:
 
       shift: { width: 1.5 }
       delete: { width: 1.5 }
-      open_symbols: { width: 1.52 }
-      number: { width: 1.24 }
+      fu:
+        width: 1.52
+        background: special
+        tap: { label: "符", action: command, value: mode_change_common_symbol, bubble: false }
+      mode_change:
+        width: 1.24
+        tap: { label: "123", action: command, value: mode_change_number, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "数字", action: command, value: mode_change_number }
+            - { label: "常用符号", action: command, value: mode_change_common_symbol }
       comma:
         width: 0.94
         tap: { label: ",", value: "," }
@@ -257,7 +326,7 @@ keyboard:
           display: bubble
           values:
             - { label: "选择输入法", action: command, value: show_ime_picker }
-      enter: { width: 1.5 }
+      enter: { width: 1.5, background: accent }
 
   # ═════════════════════════════════════════════════════════════════════════
   # 九宫格拼音（T9）——搜狗排布
@@ -314,7 +383,17 @@ keyboard:
     keys:
       # 数字面板的返回键：配置 label 后显示文字（不配是返回图标）
       back: { tap: { label: "返回" } }
-      enter: { tap: { action: send_rime, value: enter, label: "换行" } }
+      open_symbols: { tap: { label: "符" } }
+      # 换行：跟随主题强调色（搜狗原版是灰键，这里按「发送键用强调色」的统一约定）
+      enter: { tap: { action: send_rime, value: enter, label: "换行" }, background: accent }
+      # 搜狗数字面板里，左键柱 % / - + 和最右列的 . @ 都是功能键灰底，不是白键；
+      # background: special = special_key_bg_color（#CACBD6 / 暗色 #262628）
+      "%": { background: special }
+      "/": { background: special }
+      "-": { background: special }
+      "+": { background: special }
+      ".": { background: special }
+      "@": { background: special }
 
   # ═════════════════════════════════════════════════════════════════════════
   # 通用符号面板
@@ -330,10 +409,10 @@ keyboard:
         - [open_symbols, "。", "，", "、", "?", "!", ".", delete]
         - [back, emoji, number, space_key, enter]
     keys:
-      open_symbols: { width: 1.2 }
+      open_symbols: { width: 1.2, tap: { label: "符" } }
       delete: { width: 1.2 }
       back: { width: 1.45, tap: { label: "返回" } }
       emoji: { width: 0.91 }
       number: { width: 0.91 }
       space_key: { width: 4.55 }
-      enter: { width: 2.18, tap: { action: send_rime, value: enter, label: "换行" } }
+      enter: { width: 2.18, tap: { action: send_rime, value: enter, label: "换行" }, background: accent }

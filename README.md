@@ -11,7 +11,7 @@
 | 目录 | 风格 | 覆盖范围 | 主色 |
 |---|---|---|---|
 | [`wetype/xime.custom.yaml`](wetype/xime.custom.yaml) | 微信输入法 | 26 键、九键、数字面板、通用符号；亮/暗双套配色 | 微信绿 `#07C160` |
-| [`sougou/xime.custom.yaml`](sougou/xime.custom.yaml) | 搜狗输入法 | 26 键、九键、数字面板、通用符号；亮色按截图实测 | 搜狗蓝 `#4C8DFF` |
+| [`sougou/xime.custom.yaml`](sougou/xime.custom.yaml) | 搜狗输入法 | 26 键、九键、数字面板、通用符号；亮色按截图实测 | 搜狗橙 `#FB6D12` / 搜狗蓝 `#007AFD`（两套主题） |
 | [`gboard/xime.custom.yaml`](gboard/xime.custom.yaml) | Gboard | 26 键、九键、？123 面板；几何按实机截图换算（圆角 6dp / 横缝 6.5dp / 竖缝 11.5dp、无阴影）；按键级外观把 `?123` 与换行做成圆键、换行用 `background: accent` 跟随主题强调色、字母键保留 Xime 的上滑/下滑；7 套 Gboard 主题（色值取自 APK 配色表） | 薄荷绿 `#4DB6AC` |
 | [`fcitx5/xime.custom.yaml`](fcitx5/xime.custom.yaml) | Fcitx5 for Android | 26 键（alt = 1-0 / `@*+-=/ #()` / `':"?!~\`）、5 列数字小键盘；圆角 4dp / 横缝 6dp / 竖缝 14dp、无阴影；6 套主题（来自 0.1.3 的 ThemePreset.kt） | Pixel 蓝 `#4285F4` |
 | [`comma_period/xime.custom.yaml`](comma_period/xime.custom.yaml) | 逗号 / 句号分列 | 26 键；控制行改为 `?123 ， 空格 。 地球 回车`，逗号在空格左、句号在空格右（中英各一套） | 内置主题 |
