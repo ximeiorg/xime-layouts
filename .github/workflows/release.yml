@@ -80,22 +80,31 @@ jobs:
           set -euo pipefail
           shopt -s nullglob
 
+          dist="$PWD/dist"
           mkdir -p dist
           packaged=0
 
-          # 每个包含 YAML 配置的目录打包为 <目录名>.zip
+          # 每个包含 YAML 配置的目录产出两份附件：
+          #   <目录名>.zip  —— 根级打包（不能带 gboard/ 这样的顶层目录壳，
+          #                    客户端只认 zip 根目录的 xime.custom.yaml）
+          #   <目录名>.yaml —— 单文件形态，布局商店直接按纯文本布局安装
           for dir in */; do
             dir="${dir%/}"
             [[ "$dir" == .* ]] && continue
 
-            mapfile -t files < <(find "$dir" -type f \( -name '*.yaml' -o -name '*.yml' \) | sort)
-            if [ "${#files[@]}" -eq 0 ]; then
+            mapfile -t names < <(find "$dir" -maxdepth 1 -type f \( -name '*.yaml' -o -name '*.yml' \) -printf '%f\n' | sort)
+            if [ "${#names[@]}" -eq 0 ]; then
               echo "跳过 $dir：没有 YAML 配置"
               continue
             fi
 
-            zip -r "dist/${dir}.zip" "$dir" -i '*.yaml' '*.yml'
-            echo "已打包 dist/${dir}.zip（${#files[@]} 个文件）"
+            ( cd "$dir" && zip -q -X "$dist/${dir}.zip" "${names[@]}" )
+            echo "已打包 dist/${dir}.zip（${#names[@]} 个文件，根级无目录壳）"
+
+            if [ -f "$dir/xime.custom.yaml" ]; then
+              cp "$dir/xime.custom.yaml" "dist/${dir}.yaml"
+              echo "已导出 dist/${dir}.yaml（单文件布局）"
+            fi
             packaged=1
           done
 
@@ -111,7 +120,9 @@ jobs:
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.zip
+          files: |
+            dist/*.zip
+            dist/*.yaml
           fail_on_unmatched_files: true
           overwrite_files: true
 
@@ -122,7 +133,9 @@ jobs:
         with:
           tag_name: ${{ steps.meta.outputs.tag }}
           name: ${{ steps.meta.outputs.tag }}
-          files: dist/*.zip
+          files: |
+            dist/*.zip
+            dist/*.yaml
           fail_on_unmatched_files: true
           # 同一个 tag 重复跑时覆盖同名附件，不会撞 422
           overwrite_files: true
