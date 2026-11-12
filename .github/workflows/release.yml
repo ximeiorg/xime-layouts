@@ -91,6 +91,8 @@ jobs:
           for dir in */; do
             dir="${dir%/}"
             [[ "$dir" == .* ]] && continue
+            # dist/ 是本步骤刚建的输出目录，不能当成布局目录再打包（会产出 dist.zip）
+            [[ "$dir" == "dist" ]] && continue
 
             mapfile -t names < <(find "$dir" -maxdepth 1 -type f \( -name '*.yaml' -o -name '*.yml' \) -printf '%f\n' | sort)
             if [ "${#names[@]}" -eq 0 ]; then
