@@ -1,0 +1,57 @@
+# 字母顺序（abcdef…）26 键布局
+#
+# 用法：放到 rime 目录下作为 xime.custom.yaml，然后重新部署。
+#   设备上已有 xime.custom.yaml 时不要直接覆盖，只把下面 keyboard 段里的 rows 合并进去，
+#   否则会丢掉你现有的定制（例如 qwerty_14/17/18 那几套合并键布局）。
+#
+# 说明：
+#   - layout.rows 是「整段覆盖」：写了 rows 就要给出完整各行，没列出的键不会出现。
+#   - 只调整字母顺序，字母键的手势（长按大写、上滑符号/数字、下滑五笔字根）按字母 id 照旧生效。
+#   - 上滑数字 1~0 原本按 QWERTY 物理位置绑定，重排后跟着字母走（q=1、w=2…），不再与行号对应；
+#     要位置对齐的数字行可参考 number_row 示例。
+#   - 平板优先使用 qwerty_tablet / qwerty_en_tablet，所以这两段一并给出。
+#   - 中英文各一段；九键、符号、数字面板不受影响。
+
+metadata:
+  app_name: Xime
+  app_version: ">=3.4.0"
+  platform: android
+  config_version: 1
+  generator: "Xime Config Generator"
+  modified_time: "2026-11-15"
+
+keyboard:
+  # ── 手机（竖屏 / 横屏通用），中文 ──
+  qwerty:
+    layout:
+      rows:
+        - [a, b, c, d, e, f, g, h, i, j]
+        - [k, l, m, n, o, p, q, r, s]
+        - [shift, t, u, v, w, x, y, z, delete]
+        - [mode_change, comma, space, earth, enter]
+
+  # ── 手机（竖屏 / 横屏通用），英文 ──
+  qwerty_en:
+    layout:
+      rows:
+        - [a, b, c, d, e, f, g, h, i, j]
+        - [k, l, m, n, o, p, q, r, s]
+        - [shift, t, u, v, w, x, y, z, delete]
+        - [mode_change, comma, space, earth, enter]
+
+  # ── 平板（smallestWidth ≥ 600dp）：Gboard 式 12 / 11 / 11 行 ──
+  qwerty_tablet:
+    layout:
+      rows:
+        - [tab, a, b, c, d, e, f, g, h, i, j, delete]
+        - [caps, k, l, m, n, o, p, q, r, s, enter]
+        - [shift_left, t, u, v, w, x, y, z, comma, period, shift_right]
+        - [mode_change, emoji, space, cursor_left, cursor_right, mode_change]
+
+  qwerty_en_tablet:
+    layout:
+      rows:
+        - [tab, a, b, c, d, e, f, g, h, i, j, delete]
+        - [caps, k, l, m, n, o, p, q, r, s, enter]
+        - [shift_left, t, u, v, w, x, y, z, comma, period, shift_right]
+        - [mode_change, emoji, space, cursor_left, cursor_right, mode_change]

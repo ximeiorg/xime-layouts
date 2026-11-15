@@ -1,0 +1,298 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Gboard 风格布局（Xime / 安卓）
+#
+# 基座：Xime/app/src/main/assets/xime.yaml（未写的键自动回退基座值）
+#
+# 安装：把本文件放到 Xime 用户目录 rime/xime.custom.yaml
+#       （Android/data/<包名>/files/rime/），然后在键盘设置里重新部署/重启输入法。
+#
+# Gboard 的几个特征，这里尽量还原：
+#   · 所有键同一个白底圆角块（shift/退格/?123/换行 也是白键），键缝里透出浅灰键盘底
+#   · 字母键不带角标提示（Gboard 不印数字/符号提示，靠长按出符号）
+#   · 底行 = ?123 | ， | 空格 | 。 | 换行，空格很宽、两边功能键窄
+#   · ?123 页是 10 列满格数字/符号页（Gboard 只有这一页）：
+#     它放在 common_symbols（type: full），?123 键直接打开它；
+#     数字输入框自动弹出的 number 页在 Xime 里只能是三列结构，单独保留。
+#   · 强调色是 Google 蓝 #1A73E8
+#
+# 说明（Xime 渲染层的固有限制，非配置遗漏）：
+#   1. 换行键在 Gboard 是箭头图标，Xime 固定显示「换行/发送」文字。
+#   2. 空格键文字由 Xime 固定（26 键/九键 = 方案名，符号面板 = 「空格」），
+#      Gboard 空格的麦克风图标与搜索图标无法复刻。
+#   3. 键色只有「普通键 / 功能键」两组：这里刻意让两组同色，做出 Gboard 的“全部白键”，
+#      代价是没法单独给换行键做 Gboard 那种填充色。
+#   4. 数字/符号页的 . @ 等值键由 Xime 用普通键色绘制，观感与 Gboard 一致（都是白键）。
+#   5. 平板会自动套用 Xime 内置的 qwerty_tablet 等分段，本文件只覆盖手机布局。
+#   6. 九键、?123 满格页、数字页的键位是照 Gboard 观感近似排的；拿到截图后再按图精调。
+#      Xime 的数字面板（number）只能是三列结构，做不出 Gboard 的 10 列满格，
+#      所以满格页放在 common_symbols，?123 键打开的就是它。
+#   7. 深色配色按 Gboard 深色键盘估的（#202124 底 + #303134 键）；
+#      选中候选底用 candidate_selected_bg_color / _dark（0xAARRGGBB，自带透明度）。
+# ═══════════════════════════════════════════════════════════════════════════
+
+metadata:
+  app_name: Xime
+  app_version: ">=3.5.0"
+  platform: android
+  config_version: 1
+  generator: "Xime Config Generator" # 暂时无用
+  modified_time: "2026-11-06"
+
+style:
+  color_scheme:
+    light: gboard
+    dark: gboard
+  dark_mode: 2 # 0=浅色 1=深色 2=跟随系统
+
+color_schemes:
+  gboard:
+    name: "Gboard 主题"
+    # Google 蓝：候选栏强调色（返回/剪贴板/展开图标、九键选中音节等）
+    primary_color: 0x1A73E8
+
+    # Gboard 底色是极浅的中性灰，键是纯白，缝里能看到底色
+    keyboard_background:
+      type: solid
+      color: 0xF1F3F4
+      color_dark: 0x202124
+    keyboard_bg_color: 0xF1F3F4
+
+    key_bg_color: 0xFFFFFF
+    key_bg_color_dark: 0x303134
+
+    # 关键：功能键与普通键同色 → Gboard 的“所有键都是白块”
+    special_key_bg_color: 0xFFFFFF
+    special_key_bg_color_dark: 0x303134
+
+    candidate_bar_bg_color: 0xF1F3F4
+    candidate_bar_background:
+      type: solid
+      color: 0xF1F3F4
+      color_dark: 0x202124
+
+    key_text_color: 0x3C4043
+    key_text_color_dark: 0xE8EAED
+    candidate_text_color: 0x3C4043
+    candidate_text_color_dark: 0xE8EAED
+    # 选中候选：Google 蓝 8% 透明底 + 蓝字
+    candidate_selected_bg_color: 0x141A73E8
+    candidate_selected_bg_color_dark: 0x1F8AB4F8
+    candidate_selected_text_color: 0x1A73E8
+    candidate_selected_text_color_dark: 0x8AB4F8
+
+keyboard:
+  # ── 键面圆角 / 间距 ──
+  key:
+    corner_radius: 8      # Gboard 圆角约 8dp
+    # 键间距按「左右各留 spacing_x」计算，实际缝宽 = 2 * spacing
+    spacing_x: 2          # Gboard 键缝很窄
+    spacing_y: 3
+    t9: { spacing_x: 3, spacing_y: 3 }
+    number: { spacing_x: 2.5, spacing_y: 3 }
+    symbol: { spacing_x: 2.5, spacing_y: 3 }
+
+  # shape_radius 要和 key.corner_radius 一致（渲染时取两者较大值，否则阴影会从键角露出来）
+  # Gboard 的键几乎没有投影，这里用很轻的一档
+  shadow:
+    enabled: true
+    elevation: 0.3
+    shape_radius: 8
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 26 键全键盘（中文）
+  # ═════════════════════════════════════════════════════════════════════════
+  qwerty:
+    button_layout: standard
+    layout:
+      columns: 10
+      rows:
+        - [q, w, e, r, t, y, u, i, o, p]
+        - [a, s, d, f, g, h, j, k, l]
+        - [shift, z, x, c, v, b, n, m, delete]
+        - [mode_change, comma, space, period, enter]
+    keys:
+      # 字母键不印角标（Gboard 没有数字/符号提示）
+      q: { tap: "q" }
+      w: { tap: "w" }
+      e: { tap: "e" }
+      r: { tap: "r" }
+      t: { tap: "t" }
+      y: { tap: "y" }
+      u: { tap: "u" }
+      i: { tap: "i" }
+      o: { tap: "o" }
+      p: { tap: "p" }
+      a: { tap: "a" }
+      s: { tap: "s" }
+      d: { tap: "d" }
+      f: { tap: "f" }
+      g: { tap: "g" }
+      h: { tap: "h" }
+      j: { tap: "j" }
+      k: { tap: "k" }
+      l: { tap: "l" }
+      z: { tap: "z" }
+      x: { tap: "x" }
+      c: { tap: "c" }
+      v: { tap: "v" }
+      b: { tap: "b" }
+      n: { tap: "n" }
+      m: { tap: "m" }
+
+      # ── 功能键（宽度按 Gboard 键面比例，合计正好 10 列）──
+      shift: { width: 1.5 }   # 单击/双击大写；行为沿用内置
+      delete: { width: 1.5 }  # 退格；长按连删、上滑清空等沿用内置
+
+      # ?123：Gboard 的键面就是 ?123，点按进数字/符号页
+      mode_change:
+        width: 1.42
+        tap: { label: "?123", action: command, value: mode_change_common_symbol, bubble: false }
+        long_press:
+          display: bubble
+          values:
+            - { label: "符号", action: command, value: mode_change_common_symbol }
+            - { label: "数字", action: command, value: mode_change_number }
+
+      # 逗号：Gboard 底行是窄键
+      comma:
+        width: 0.95
+        tap: { label: "，", value: "," }
+        swipe_up: { label: "。", value: "." }
+        long_press: { display: "bubble", values: [{ action: commit, value: "，" }, { action: commit, value: "？" }, { action: commit, value: "！" }] }
+
+      # 空格：Gboard 的空格非常宽
+      space: { width: 5.26 }
+
+      # 句号：与逗号同宽的窄键
+      period:
+        width: 0.95
+        tap: { label: "。", value: "." }
+        long_press: { display: "bubble", values: [{ action: commit, value: "。" }, { action: commit, value: "？" }, { action: commit, value: "！" }] }
+
+      # 换行：保留 Xime 的自动文案（普通文本框显示「换行」，发送场景显示「发送」）
+      enter: { width: 1.42 }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 26 键全键盘（英文）——排布与中文一致，标点用半角
+  # ═════════════════════════════════════════════════════════════════════════
+  qwerty_en:
+    button_layout: standard
+    layout:
+      columns: 10
+      rows:
+        - [q, w, e, r, t, y, u, i, o, p]
+        - [a, s, d, f, g, h, j, k, l]
+        - [shift, z, x, c, v, b, n, m, delete]
+        - [mode_change, comma, space, period, enter]
+    keys:
+      q: { tap: "q" }
+      w: { tap: "w" }
+      e: { tap: "e" }
+      r: { tap: "r" }
+      t: { tap: "t" }
+      y: { tap: "y" }
+      u: { tap: "u" }
+      i: { tap: "i" }
+      o: { tap: "o" }
+      p: { tap: "p" }
+      a: { tap: "a" }
+      s: { tap: "s" }
+      d: { tap: "d" }
+      f: { tap: "f" }
+      g: { tap: "g" }
+      h: { tap: "h" }
+      j: { tap: "j" }
+      k: { tap: "k" }
+      l: { tap: "l" }
+      z: { tap: "z" }
+      x: { tap: "x" }
+      c: { tap: "c" }
+      v: { tap: "v" }
+      b: { tap: "b" }
+      n: { tap: "n" }
+      m: { tap: "m" }
+
+      shift: { width: 1.5 }
+      delete: { width: 1.5 }
+      mode_change:
+        width: 1.42
+        tap: { label: "?123", action: command, value: mode_change_common_symbol, bubble: false }
+      comma:
+        width: 0.95
+        tap: { label: ",", value: "," }
+        swipe_up: { label: ".", value: "." }
+        long_press: { display: "bubble", values: [{ action: commit, value: "," }, { action: commit, value: "?" }, { action: commit, value: "!" }] }
+      space: { width: 5.26 }
+      period:
+        width: 0.95
+        tap: { label: ".", value: "." }
+        long_press: { display: "bubble", values: [{ action: commit, value: "." }, { action: commit, value: "?" }, { action: commit, value: "!" }] }
+      enter: { width: 1.42 }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 九宫格拼音（T9）——Gboard 观感近似
+  #   左栏：候选面板（空闲时显示 ，。？！）+ 符
+  #   主区：1(@#) ABC DEF / GHI JKL MNO / PQRS TUV WXYZ / 123 空格 中英
+  #   右栏：退格 / 重输 / 换行
+  #
+  # 何时显示九键：由基座的 keyboard.t9.schemas 决定（默认 t9_pinyin / t9 /
+  # wanxiang_t9 / rime_frost_t9）。想让自己的方案也用九键，在本段追加
+  # （列表要整段写出，不能只写新增项）：
+  #   schemas: [t9_pinyin, t9, wanxiang_t9, rime_frost_t9, 你的方案id]
+  # ═════════════════════════════════════════════════════════════════════════
+  t9:
+    type: t9
+    layout:
+      left: [candidates, symbol]
+      rows:
+        - ["1", "2", "3"]
+        - ["4", "5", "6"]
+        - ["7", "8", "9"]
+        - [number, space, earth]
+      right: [delete, clear, enter]
+
+    side_symbols: ["，", "。", "？", "！"]
+
+    keys:
+      number: { width: 0.85 }
+      space: { width: 1.8 }
+      earth: { width: 0.85 }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # 数字面板（数字输入框自动弹出这一页）
+  # 说明：Xime 的数字面板只能是「左柱 + 三列 + 右列」结构（有 left/right 即三列模式，
+  #       自定义 rows 无法把它变成 Gboard 的 10 列满格），所以 Gboard 的 ?123 满格页
+  #       放在 common_symbols（type: full）里，?123 键直接打开它；这一页留给数字输入框。
+  # ═════════════════════════════════════════════════════════════════════════
+  number:
+    type: columns
+    layout:
+      left:
+        - ["@", "#", "$", "%"]
+        - open_symbols
+      rows:
+        - ["1", "2", "3"]
+        - ["4", "5", "6"]
+        - ["7", "8", "9"]
+        - [back, "0", "."]
+      right: [delete, ",", space_key, enter]
+    keys:
+      back: { tap: { label: "ABC" } }
+      space_key: { width: 1.0 }
+      enter: { tap: { action: send_rime, value: enter, label: "换行" } }
+
+  # ═════════════════════════════════════════════════════════════════════════
+  # ?123 满格页（Gboard 的数字/符号页）——?123 键直接打开这里
+  # ═════════════════════════════════════════════════════════════════════════
+  common_symbols:
+    type: full
+    layout:
+      rows:
+        - ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
+        - ["@", "#", "$", "_", "&", "-", "+", "(", ")", "/"]
+        - ["*", "\"", "'", ":", ";", "!", "?", "=", "%", "~"]
+        - [back, ",", space_key, ".", enter]
+    keys:
+      back: { width: 1.5, tap: { label: "ABC" } }
+      space_key: { width: 4.5 }
+      enter: { width: 2.0, tap: { action: send_rime, value: enter, label: "换行" } }

@@ -2,7 +2,7 @@
 
 给 [Xime](https://github.com/ximeiorg/Xime)（Android 输入法，Rime 内核）做的键盘布局预设。每个目录是一份完整的 `xime.custom.yaml`，放进 Xime 的用户配置目录就能用；目录名即布局风格。
 
-> Keyboard layout presets for Xime. Each folder holds one `xime.custom.yaml` that overrides the built-in layout by style (WeChat / Sogou).
+> Keyboard layout presets for Xime. Each folder holds one `xime.custom.yaml` that overrides the built-in layout by style (WeChat / Sogou / Gboard).
 
 ![license](https://img.shields.io/badge/license-GPL--3.0-blue)
 
@@ -12,8 +12,9 @@
 |---|---|---|---|
 | [`wetype/xime.custom.yaml`](wetype/xime.custom.yaml) | 微信输入法 | 26 键、九键、数字面板、通用符号；亮/暗双套配色 | 微信绿 `#07C160` |
 | [`sougou/xime.custom.yaml`](sougou/xime.custom.yaml) | 搜狗输入法 | 26 键、九键、数字面板、通用符号；亮色按截图实测 | 搜狗蓝 `#4C8DFF` |
+| [`gboard/xime.custom.yaml`](gboard/xime.custom.yaml) | Gboard | 26 键、九键、?123 满格页、数字页；全部键白底、无角标 | Google 蓝 `#1A73E8` |
 
-两份配置都只写「和内置 `xime.yaml` 不一样的部分」，没写的字段自动回退内置值。
+每份配置都只写「和内置 `xime.yaml` 不一样的部分」，没写的字段自动回退内置值。
 
 ## 安装
 
